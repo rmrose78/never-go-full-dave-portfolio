@@ -17,39 +17,63 @@ Implement one vertical slice issue at a time. Never proceed to the next issue un
 
 ---
 
-## Frontend TDD Cycle (Component-First)
+## Frontend TDD Cycle (Component-First + Automated Verification)
 
 ```
 1. READ       — Inspect fe-standards.md & fe-testing-patterns.md
-2. BUILD      — Create component structure & SCSS module
+2. BUILD      — Create component structure & SCSS module (*.module.scss)
 3. A11Y       — Apply a11y-checklist.md rules (roles, contrast, labels)
-4. TEST       — Write Jest + RTL + jest-axe tests for all render states
+4. TEST       — Write Jest/Vitest + RTL + jest-axe tests for all render states
 5. FORCE RED  — Intentionally break component logic to confirm test fails
 6. RESTORE    — Fix component back to green
 7. VERIFY     — Run `npm test -- src/components/<component>.test.tsx`
-8. VISUAL     — Run /visual-check via subagent if requested by developer
-9. PRECOMMIT  — Run pre-commit.md checklist
-10. REPORT    — Output completion report
+8. SWARM A11Y — Automatically invoke /a11y-sweep subagent for real-browser Playwright + axe-core check
+9. SWARM VIS  — Automatically invoke /visual-check subagent to capture multi-viewport UI screenshot carousel
+10. PRECOMMIT — Automatically execute full pre-commit gate (`npm run precommit` / pre-commit.md)
+11. REPORT    — Output completion report with visual & accessibility artifacts
 ```
 
 ---
 
-## Test Verification Commands
+## Parallel Subagent Swarm Execution
+When `/3-to-issues` flags unblocked parallel issues, launch concurrent subagents using `invoke_subagent`:
+
+```json
+{
+  "Subagents": [
+    {
+      "TypeName": "self",
+      "Role": "Subagent Swarm A - Header Component",
+      "Prompt": "Implement Issue #2 (Header Component) using /4-tdd workflow in workspace 'share'."
+    },
+    {
+      "TypeName": "self",
+      "Role": "Subagent Swarm B - Footer Component",
+      "Prompt": "Implement Issue #3 (Footer Component) using /4-tdd workflow in workspace 'share'."
+    }
+  ]
+}
+```
+
+---
+
+## Test Verification & Automated Pre-Commit Commands
 Execute tests using `run_command`:
 ```bash
 npm test -- src/components/<component>.test.tsx
 ```
 
-For full suite validation:
+Automated Full Pre-Commit Gate (MUST run before issue completion):
 ```bash
-npm test
+npm run precommit  # Runs npm run build && npm run lint && npm test
 ```
 
 ---
 
-## Visual & Accessibility Verification
-- **Visual Verification**: Delegate to an isolated subagent (`/visual-check`).
-- **Real-Browser Accessibility**: Delegate to an isolated subagent (`/a11y-sweep`).
+## Automated Verification Gates
+- **Real-Browser Accessibility Gate**: Automatically trigger `/a11y-sweep` subagent upon unit test pass.
+- **Visual Verification Gate**: Automatically trigger `/visual-check` subagent upon unit test pass to embed side-by-side screenshot carousels in the completion report.
+- **Pre-Commit Automated Gate**: Automatically execute `npm run precommit` (build, lint, test, jest-axe checks, zero console.log) before declaring issue complete.
 
 ---
 

@@ -62,16 +62,24 @@ gh issue create \
   --label "vertical-slice"
 ```
 
-## Dependency Graph Visualization
-Generate a Mermaid dependency chart:
+## Dependency Graph Visualization & Parallelization Swarm Strategy
+Generate a Mermaid dependency chart and tag issues that are parallelizable (i.e. have no blocking parent dependencies):
 
 ```mermaid
 flowchart LR
-    Issue1["Issue 1: Layout Scaffold"] --> Issue2["Issue 2: Header Component"]
-    Issue1 --> Issue3["Issue 3: Footer Component"]
+    Issue1["Issue 1: Layout Scaffold"] --> Issue2["Issue 2: Header Component [Swarm A]"]
+    Issue1 --> Issue3["Issue 3: Footer Component [Swarm B]"]
     Issue2 --> Issue4["Issue 4: Mobile Navigation"]
     Issue3 --> Issue4
 ```
+
+### Parallel Subagent Swarm Execution Matrix
+Identify unblocked parallel branches in the dependency graph so `/4-tdd` can dispatch concurrent subagents via `invoke_subagent`:
+| Issue | Status | Can Run Concurrently? | Subagent Swarm Role |
+|-------|--------|----------------------|----------------------|
+| Issue 1 | Unblocked | No (Root Dependency) | Lead Agent |
+| Issue 2 | Blocked by #1 | Yes (with Issue #3) | Subagent Swarm A |
+| Issue 3 | Blocked by #1 | Yes (with Issue #2) | Subagent Swarm B |
 
 ## Confidence Gate
 Run `.agents/skills/shared/confidence-gate.md` to ensure 95%+ confidence before finalizing.
@@ -83,6 +91,6 @@ ISSUES COMPLETE
 Generated <n> issue tickets in docs/issues/<feature-name>/
 GitHub Issues created: <issue links>
 
-Dependency Graph rendered.
-Ready to run /4-tdd on Issue 1
+Dependency Graph & Parallel Swarm Matrix rendered.
+Ready to run /4-tdd on Issue 1 (or parallel subagent swarms for unblocked issues)
 ```
