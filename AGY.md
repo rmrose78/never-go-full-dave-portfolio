@@ -47,10 +47,12 @@ All skills in `.agents/skills/` are scoped for frontend development (Vite + Reac
 4. **Accessibility (a11y) & Contrast**:
    - Every component with rendered markup gets a `jest-axe` test with one assertion per distinct render state (`.agents/skills/4-tdd/pre-commit.md`).
    - Verify text contrast: 4.5:1 for normal text, 3:1 for large text/interactive elements.
-5. **TDD & Commit Permissions**:
-   - Feature work goes through the pipeline: `/1-grill-me` → `/2-to-prd` → `/3-to-issues` → `/4-tdd`.
-   - Every issue gets its own branch (`<issue-number>-<slug>`). Never implement directly on `main`.
-   - `/4-tdd` never auto-commits without developer approval.
+5. **Git, PR & Commit Control Rules**:
+   - **GitHub Issue First**: Before pushing any code, a GitHub Issue MUST be created (`gh issue create`).
+   - **Dedicated Feature Branch**: All work MUST be committed on a dedicated branch (`<issue-number>-<slug>`). NEVER commit or push directly to `main`.
+   - **Meaningful Chunked Commits**: Make commits in logical, descriptive chunks.
+   - **STOP Before Merging PRs**: Create the Pull Request (`gh pr create`) and STOP for developer review. **NEVER merge a PR into `main` unless explicitly instructed by the developer**.
+   - **Respect Developer Commit Restraints**: If the developer requests "do not commit" or "do not push", keep changes uncommitted and await explicit developer permission.
 6. **Copywriting Rule**:
    - **No em dashes** in copy, prose, or commit messages — use periods or commas.
 
