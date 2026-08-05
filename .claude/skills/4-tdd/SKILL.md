@@ -55,17 +55,25 @@ npm test
 
 ## When Issue is Complete
 
-Reconcile issue markdown spec and output:
+1. **GitHub PR Creation Gate**:
+   - Push feature branch (`git push -u origin <issue-number>-<slug>`).
+   - Create Pull Request (`gh pr create`).
+   - **STOP IMMEDIATELY**. Never merge PR into `main` unless explicitly instructed by the developer.
+
+2. Reconcile issue markdown spec and output completion report:
 
 ```
-ISSUE COMPLETE
+ISSUE COMPLETE & PR OPENED
 
 Issue: <title>
+Branch: <issue-number>-<slug>
+Pull Request: <PR URL>
 Built: ✅
-A11y checked (jest-axe): ✅
+A11y checked (jest-axe + native AGY Chrome tools): ✅
 Tests: <n> added, all passing ✅
 Red-green verified: ✅
 Visual verification: <confirmed / skipped>
+Pre-commit gate (build/lint/test): ✅
 
 Acceptance criteria:
 - [x] <criterion met>
@@ -80,6 +88,6 @@ feat: <description>
 - A11y: <accessibility details>
 - Tests: <unit & jest-axe test coverage>
 
-Status: Ready for developer review and PR.
+Status: PR opened and ready for developer code review. STOPPED (Awaiting developer instructions to merge).
 Next issue: <title or NONE>
 ```
