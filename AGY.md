@@ -7,7 +7,7 @@ Primary rules and instructions for Antigravity agents working in this workspace.
 ## Stack Declaration
 
 **This project is frontend-only. It has no backend.**
-All skills in `.agents/skills/` are scoped for frontend development (Vite + React + TypeScript + SCSS Modules + Jest/RTL + jest-axe + Playwright). Do not ask backend discovery questions or expect a `backend/` directory. If a backend is added in the future, update this section first.
+All skills in `.agents/skills/` are scoped for frontend development (Vite + React + TypeScript + SCSS Modules + Jest/RTL + jest-axe + Native AGY Chrome CDP Browser Tools). Do not ask backend discovery questions or expect a `backend/` directory. If a backend is added in the future, update this section first.
 
 ---
 
@@ -18,8 +18,8 @@ All skills in `.agents/skills/` are scoped for frontend development (Vite + Reac
 - `/2-to-prd` → Convert grill-me interview into an interactive PRD Artifact (`.agents/skills/2-to-prd/SKILL.md`).
 - `/3-to-issues` → Break PRD into vertical slice implementation tickets & create GitHub Issues (`.agents/skills/3-to-issues/SKILL.md`).
 - `/4-tdd` → Implement one issue at a time using component-first TDD red-green discipline (`.agents/skills/4-tdd/SKILL.md`).
-- `/visual-check` → Run Playwright screenshot verification via an isolated subagent and generate visual comparison carousels (`.agents/skills/visual-check/SKILL.md`).
-- `/a11y-sweep` → Run real-browser `@axe-core/playwright` accessibility sweep via an isolated subagent (`.agents/skills/a11y-sweep/SKILL.md`).
+- `/visual-check` → Run AGY native Chrome CDP screenshot verification via an isolated subagent and generate visual comparison carousels (`.agents/skills/visual-check/SKILL.md`).
+- `/a11y-sweep` → Run native AGY Chrome browser accessibility sweep via an isolated subagent (`.agents/skills/a11y-sweep/SKILL.md`).
 - `/manual-a11y-verification` → 11-point human judgment accessibility checklist (`.agents/skills/manual-a11y-verification/SKILL.md`).
 - `/agy-md-organizer` → Pass 0 completeness check & Pass 1 slim `AGY.md` (`.agents/skills/agy-md-organizer/SKILL.md`).
 

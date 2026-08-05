@@ -1,14 +1,14 @@
 ---
 name: a11y-sweep
-description: Real-browser accessibility sweep (Playwright + axe-core) executed via an isolated subagent to prevent context bloat. Opt-in only.
+description: Native AGY Chrome browser accessibility sweep executed via an isolated subagent.
 ---
 
 # Skill: a11y-sweep
 
 Invoke this skill when requested by the developer via `/a11y-sweep`.
 
-## Core Upgrade: Subagent Execution
-Real-browser accessibility scanning generates large DOM violation dumps and JSON payloads. To keep the main conversation thread clean and fast, delegate the sweep to a subagent:
+## Core Upgrade: Native AGY Chrome Browser Tools
+Accessibility scanning leverages **Antigravity's native Chrome browser tools** (`read_browser_page`, `execute_browser_script`, CDP Accessibility Tree inspection). To keep the main conversation thread clean and fast, delegate the sweep to an isolated subagent:
 
 ```json
 {
@@ -17,15 +17,15 @@ Real-browser accessibility scanning generates large DOM violation dumps and JSON
       "TypeName": "research",
       "Role": "Accessibility Sweep Subagent",
       "Model": "flash",
-      "Prompt": "Run npm run test:a11y against http://localhost:5173. Group axe-core violations by WCAG criterion and return a condensed summary report."
+      "Prompt": "Run native Chrome browser accessibility scan against http://localhost:5173 using AGY browser tools. Group DOM accessibility tree & WCAG violations by criterion and return a condensed summary report."
     }
   ]
 }
 ```
 
 ## Steps
-1. Subagent runs `@axe-core/playwright` scan at mobile (375px) and desktop (1440px) viewports across interactive states (e.g. navigation menu open).
-2. Subagent filters transition/animation timing artifacts.
+1. Subagent connects to Chrome using AGY native browser tools at mobile (375px) and desktop (1440px) viewports across interactive states (e.g. navigation menu open).
+2. Subagent executes native DOM accessibility tree inspection and WCAG contrast/label validation.
 3. Subagent returns condensed summary report grouped by WCAG impact (Critical, Serious, Moderate, Minor).
 
 ## Report Schema
@@ -33,7 +33,7 @@ Real-browser accessibility scanning generates large DOM violation dumps and JSON
 ```
 A11Y SWEEP RESULTS
 
-Automated Suite (@axe-core/playwright):
+Automated Suite (AGY Native Chrome CDP Tools):
 - [pass/fail] Homepage Mobile (375px)
 - [pass/fail] Homepage Desktop (1440px)
 - [pass/fail] Navigation Open State

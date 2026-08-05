@@ -27,8 +27,8 @@ Implement one vertical slice issue at a time. Never proceed to the next issue un
 5. FORCE RED  — Intentionally break component logic to confirm test fails
 6. RESTORE    — Fix component back to green
 7. VERIFY     — Run `npm test -- src/components/<component>.test.tsx`
-8. SWARM A11Y — Automatically invoke /a11y-sweep subagent for real-browser Playwright + axe-core check
-9. SWARM VIS  — Automatically invoke /visual-check subagent to capture multi-viewport UI screenshot carousel
+8. SWARM A11Y — Automatically invoke /a11y-sweep subagent via native AGY Chrome browser tools
+9. SWARM VIS  — Automatically invoke /visual-check subagent via native AGY Chrome CDP screenshot tools
 10. PRECOMMIT — Automatically execute full pre-commit gate (`npm run precommit` / pre-commit.md)
 11. REPORT    — Output completion report with visual & accessibility artifacts
 ```
@@ -71,8 +71,8 @@ npm run precommit  # Runs npm run build && npm run lint && npm test
 ---
 
 ## Automated Verification Gates
-- **Real-Browser Accessibility Gate**: Automatically trigger `/a11y-sweep` subagent upon unit test pass.
-- **Visual Verification Gate**: Automatically trigger `/visual-check` subagent upon unit test pass to embed side-by-side screenshot carousels in the completion report.
+- **Real-Browser Accessibility Gate**: Automatically trigger `/a11y-sweep` subagent via native AGY Chrome browser tools upon unit test pass.
+- **Visual Verification Gate**: Automatically trigger `/visual-check` subagent via native AGY Chrome CDP screenshot tools upon unit test pass to embed side-by-side screenshot carousels in the completion report.
 - **Pre-Commit Automated Gate**: Automatically execute `npm run precommit` (build, lint, test, jest-axe checks, zero console.log) before declaring issue complete.
 
 ---

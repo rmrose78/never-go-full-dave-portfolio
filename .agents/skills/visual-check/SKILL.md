@@ -1,14 +1,14 @@
 ---
 name: visual-check
-description: Playwright MCP-driven visual verification loop using isolated subagent execution and side-by-side screenshot carousels in Artifacts. Opt-in only.
+description: Native AGY Chrome CDP visual verification loop using isolated subagent execution and side-by-side screenshot carousels in Artifacts.
 ---
 
 # Skill: visual-check
 
 Invoke this skill when requested by the developer via `/visual-check` or during `/4-tdd` verification.
 
-## Core Upgrade: Subagent Context Isolation
-Unlike legacy inline execution, `visual-check` delegates the tool-call-dense screenshot and computed-style evaluation loop to a dedicated background subagent:
+## Core Upgrade: Native Chrome CDP + Subagent Isolation
+`visual-check` leverages **Antigravity's native Chrome DevTools Protocol (CDP) browser tools** (`read_browser_page`, `take_browser_screenshot`) delegated to a dedicated background subagent:
 
 ```json
 {
@@ -17,7 +17,7 @@ Unlike legacy inline execution, `visual-check` delegates the tool-call-dense scr
       "TypeName": "research",
       "Role": "Visual Verification Subagent",
       "Model": "flash",
-      "Prompt": "Run Playwright visual verification for route http://localhost:5173 against docs/reference/design-direction.md tokens. Capture 375px mobile and 1440px desktop screenshots, compare computed styles, and return a clean summary."
+      "Prompt": "Run native Chrome CDP visual verification for route http://localhost:5173 against docs/reference/design-direction.md tokens. Capture 375px mobile and 1440px desktop screenshots using AGY browser tools, compare computed styles, and return a clean summary."
     }
   ]
 }
@@ -25,8 +25,8 @@ Unlike legacy inline execution, `visual-check` delegates the tool-call-dense scr
 
 ## Flow
 
-1. **Subagent Execution**: Subagent navigates to route via Playwright MCP, takes mobile (375px) and desktop (1440px) screenshots, and inspects computed CSS properties (`padding`, `color`, `font-family`, `border-radius`).
-2. **Computed Style Diff**: Compares computed properties against tokens in `docs/reference/design-direction.md`.
+1. **Subagent Execution**: Subagent connects directly to Chrome via native AGY browser CDP tools, sets viewport dimensions (mobile 375px, desktop 1440px), captures full-res screenshots, and inspects computed CSS properties (`padding`, `color`, `font-family`, `border-radius`).
+2. **Computed Style Diff**: Compares computed properties against design tokens in `docs/reference/design-direction.md`.
 3. **Artifact Carousel Output**: Embeds rendered screenshots side-by-side using Antigravity markdown `carousel` formatting inside a visual report Artifact:
 
 ````carousel
