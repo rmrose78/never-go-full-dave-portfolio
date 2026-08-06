@@ -1,0 +1,106 @@
+@use '@/styles/_variables.scss' as *;
+@use '@/styles/_mixins.scss' as *;
+
+.gallery {
+  background: linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+  padding-top: $section-py-mobile;
+  padding-bottom: $section-py-mobile;
+  position: relative;
+  border-top: 1px solid rgba(212, 178, 101, 0.15);
+
+  @media (min-width: $bp-md) {
+    padding-top: $section-py-desktop;
+    padding-bottom: $section-py-desktop;
+  }
+}
+
+.container {
+  @include layout-container;
+  position: relative;
+  z-index: 2;
+}
+
+.sectionKicker {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  color: var(--brass-dim);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionTitle {
+  font-size: clamp(1.9rem, 4.2vw, 2.75rem);
+  margin-bottom: 1rem;
+  background: linear-gradient(180deg, #ffffff 0%, var(--text) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sectionLede {
+  color: var(--text-muted);
+  max-width: 42rem;
+  margin-bottom: 2.5rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+}
+
+.filterBtn {
+  background: rgba(20, 18, 16, 0.8);
+  border: 1px solid rgba(212, 178, 101, 0.25);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.15rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover,
+  &.isActive {
+    background: var(--brass);
+    color: var(--void);
+    border-color: var(--brass);
+    font-weight: 700;
+    box-shadow: 0 4px 15px var(--brass-glow);
+  }
+}
+
+.filterCount {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: rgba(8, 7, 6, 0.3);
+  padding: 0.1rem 0.4rem;
+  border-radius: 2px;
+}
+
+.galleryGrid {
+  position: relative;
+  z-index: 2;
+  columns: 1;
+  column-gap: 1.5rem;
+
+  @media (min-width: 640px) {
+    columns: 2;
+  }
+
+  @media (min-width: 1024px) {
+    columns: 3;
+    column-gap: 1.75rem;
+  }
+}
