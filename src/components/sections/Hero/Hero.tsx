@@ -20,26 +20,10 @@ export const Hero: React.FC<HeroProps> = ({
   ctaHref = '#gallery',
   enableScramble = true,
 }) => {
-  const { displayText, isComplete, currentBootLine, isBooting } = useScrambleText({
+  const { chars, isComplete, currentBootLine, isBooting } = useScrambleText({
     text: title,
     enabled: enableScramble,
   })
-
-  // Format title with gold accent on "DAVE" if present
-  const renderTitle = () => {
-    if (!displayText) return null
-    const parts = displayText.split('DAVE')
-    if (parts.length > 1) {
-      return (
-        <>
-          {parts[0]}
-          <span className={styles.titleAccent}>DAVE</span>
-          {parts.slice(1).join('DAVE')}
-        </>
-      )
-    }
-    return displayText
-  }
 
   return (
     <section className={styles.heroSection} id="hero" aria-label="Hero Showcase Entrance">
@@ -65,7 +49,20 @@ export const Hero: React.FC<HeroProps> = ({
           data-testid="hero-title"
           aria-label={title}
         >
-          {renderTitle()}
+          {chars.map((charObj, index) => {
+            if (charObj.final === ' ') {
+              return <React.Fragment key={index}> </React.Fragment>
+            }
+            const isAccentStyle = charObj.isAccent && charObj.isRevealed
+            return (
+              <span
+                key={index}
+                className={isAccentStyle ? styles.titleAccent : undefined}
+              >
+                {charObj.current}
+              </span>
+            )
+          })}
         </h1>
 
         {/* Warning Badge & Tagline */}
