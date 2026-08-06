@@ -1,30 +1,55 @@
-// Colors
-// placeholder — replace with your own palette
-$color-bg: #14161a;
-$color-fg: #f5f5f5;
-$color-accent: #8b96a6;
-$color-gray-400: #9aa1ac;
-$color-gray-600: #4b5563;
-$color-gray-800: #1f232b;
-$color-gray-900: #0d0f13;
+// Color Palette Tokens
+// Void Base
+$color-void: #080706;
+$color-void-2: #100f0d;
+$color-void-3: #181614;
+$color-void-card: #141210;
+
+// Typography Colors
+$color-text: #ece9e2;
+$color-text-muted: #a49f94;
+
+// Brass Metallic Accent
+$color-brass: #d4b265;
+$color-brass-glow: rgba(212, 178, 101, 0.4);
+$color-brass-dim: #8e7742;
+
+// Ember Orange Accent
+$color-ember: #ff6e4a;
+$color-ember-glow: rgba(255, 110, 74, 0.4);
+$color-red-bg: #240403;
+$color-red-line: rgba(255, 110, 74, 0.4);
+
+// Tactical Olive & Signal Colors
+$color-olive: #92a450;
+$color-olive-bg: #21260e;
+$color-olive-line: rgba(146, 164, 80, 0.4);
+$color-signal: #6ee5cc;
+$color-signal-glow: rgba(110, 229, 204, 0.5);
+$color-signal-dim: rgba(110, 229, 204, 0.25);
+
+// Overlays
+$color-overlay-a: rgba(8, 7, 6, 0.82);
+$color-overlay-b: rgba(8, 7, 6, 0.94);
+
+// Legacy color variable aliases for compatibility
+$color-bg: $color-void;
+$color-fg: $color-text;
+$color-accent: $color-brass;
+$color-gray-400: $color-text-muted;
+$color-gray-600: $color-brass-dim;
+$color-gray-800: $color-void-3;
+$color-gray-900: $color-void-2;
 
 // Fonts
-// placeholder — system font stack. Swap in custom fonts by adding a
-// @font-face or Google Fonts @import in globals.scss and updating these.
-$font-heading:
-  system-ui,
-  -apple-system,
-  'Segoe UI',
-  sans-serif;
-$font-mono:
-  ui-monospace,
-  SFMono-Regular,
-  Menlo,
-  Consolas,
-  monospace;
-$font-body: $font-heading;
+$font-display: 'Chakra Petch', system-ui, -apple-system, sans-serif;
+$font-body: 'Inter', system-ui, -apple-system, sans-serif;
+$font-mono: 'Space Mono', monospace;
+$font-heading: $font-display;
 
-// Spacing
+// Layout & Spacing
+$nav-height: 4.25rem;
+$max-layout-width: 80rem;
 $section-px-mobile: 1.25rem;
 $section-px-desktop: 3rem;
 $section-py-mobile: 4.5rem;
@@ -33,6 +58,9 @@ $section-py-desktop: 7rem;
 // Breakpoints
 $bp-sm: 480px;
 $bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+$bp-ultra: 2000px;
 
 // Transitions
 $transition-base: 200ms ease;

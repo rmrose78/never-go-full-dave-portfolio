@@ -1,0 +1,22 @@
+@use '@/styles/_variables.scss' as *;
+
+.emblem {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+  transition: transform $transition-base, filter $transition-base;
+
+  &:hover {
+    filter: drop-shadow(0 0 8px $color-brass-glow);
+  }
+}
+
+.variantNav {
+  width: 2rem;
+  height: 2rem;
+}
+
+.variantHero {
+  width: 5.25rem;
+  height: 5.25rem;
+}
