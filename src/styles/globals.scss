@@ -1,6 +1,35 @@
 @use '@/styles/_variables.scss' as *;
 @use '@/styles/_mixins.scss' as *;
 
+:root {
+  --void: #{$color-void};
+  --void-2: #{$color-void-2};
+  --void-3: #{$color-void-3};
+  --void-card: #{$color-void-card};
+  --text: #{$color-text};
+  --text-muted: #{$color-text-muted};
+  --brass: #{$color-brass};
+  --brass-glow: #{$color-brass-glow};
+  --brass-dim: #{$color-brass-dim};
+  --olive: #{$color-olive};
+  --olive-bg: #{$color-olive-bg};
+  --olive-line: #{$color-olive-line};
+  --ember: #{$color-ember};
+  --ember-glow: #{$color-ember-glow};
+  --red-bg: #{$color-red-bg};
+  --red-line: #{$color-red-line};
+  --signal: #{$color-signal};
+  --signal-glow: #{$color-signal-glow};
+  --signal-dim: #{$color-signal-dim};
+  --overlay-a: #{$color-overlay-a};
+  --overlay-b: #{$color-overlay-b};
+  --font-display: #{$font-display};
+  --font-body: #{$font-body};
+  --font-mono: #{$font-mono};
+  --nav-h: #{$nav-height};
+  --max-layout-width: #{$max-layout-width};
+}
+
 *,
 *::before,
 *::after {
@@ -15,10 +44,11 @@ html {
 }
 
 body {
-  background-color: $color-bg;
-  color: $color-fg;
-  font-family: $font-body;
+  background-color: var(--void);
+  color: var(--text);
+  font-family: var(--font-body);
   line-height: 1.6;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -27,15 +57,18 @@ h2,
 h3,
 h4,
 h5,
-h6 {
-  font-family: $font-heading;
+h6,
+.display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   line-height: 1.2;
 }
 
 code,
 pre,
 kbd {
-  font-family: $font-mono;
+  font-family: var(--font-mono);
 }
 
 a {
@@ -51,17 +84,22 @@ button {
 }
 
 img,
+svg,
 canvas {
   display: block;
   max-width: 100%;
 }
 
+.visually-hidden {
+  @include visually-hidden;
+}
+
 :focus-visible {
-  outline: 2px solid $color-accent;
+  outline: 2px solid var(--brass);
   outline-offset: 3px;
 }
 
 ::selection {
-  background: $color-accent;
-  color: $color-bg;
+  background: var(--brass);
+  color: var(--void);
 }
