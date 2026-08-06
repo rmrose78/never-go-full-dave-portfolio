@@ -17,20 +17,21 @@ Implement one vertical slice issue at a time. Never proceed to the next issue un
 
 ---
 
-## Frontend TDD Cycle (Component-First + Automated Verification)
+## Frontend TDD Cycle (Component-First + Testability Architecture)
 
 ```
 1. READ       — Inspect fe-standards.md & fe-testing-patterns.md
-2. BUILD      — Create component structure & SCSS module (*.module.scss)
-3. A11Y       — Apply a11y-checklist.md rules (roles, contrast, labels)
-4. TEST       — Write Jest/Vitest + RTL + jest-axe tests for all render states
-5. FORCE RED  — Intentionally break component logic to confirm test fails
-6. RESTORE    — Fix component back to green
-7. VERIFY     — Run `npm test -- src/components/<component>.test.tsx`
-8. SWARM A11Y — Automatically invoke /a11y-sweep subagent via native AGY Chrome browser tools
-9. SWARM VIS  — Automatically invoke /visual-check subagent via native AGY Chrome CDP screenshot tools
-10. PRECOMMIT — Automatically execute full pre-commit gate (`npm run precommit` / pre-commit.md)
-11. REPORT    — Output completion report with visual & accessibility artifacts
+2. ARCHITECT  — Extract pure logic into src/utils/*.ts & custom hooks src/hooks/*.ts for 100% testability
+3. BUILD      — Create presentational TSX component & SCSS module (*.module.scss)
+4. A11Y       — Apply a11y-checklist.md rules (roles, contrast, labels)
+5. TEST       — Write Jest/Vitest + RTL + jest-axe tests for hooks, utils, and render states
+6. FORCE RED  — Intentionally break component logic to confirm test fails
+7. RESTORE    — Fix component back to green
+8. VERIFY     — Run `npm test -- --coverage src/components/<component>.test.tsx` (Confirm near 100% coverage)
+9. SWARM A11Y — Automatically invoke /a11y-sweep subagent via native AGY Chrome browser tools
+10. SWARM VIS  — Automatically invoke /visual-check subagent via native AGY Chrome CDP screenshot tools
+11. PRECOMMIT — Automatically execute full pre-commit gate (`npm run precommit` / pre-commit.md)
+12. REPORT    — Output completion report with visual, accessibility, and code coverage metrics
 ```
 
 ---

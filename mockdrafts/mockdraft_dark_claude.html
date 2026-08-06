@@ -1,0 +1,2612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Never Go Full Dave — Direction A V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Design tokens ----------
+     Same core family as V1 (void / brass / olive / ember), plus a cool
+     "signal" accent reserved for cogitator/terminal/auspex elements —
+     the one new color, used sparingly so it reads as machine-spirit
+     instrumentation, not a rebrand. */
+  :root {
+    --void: #0a0908;
+    --void-2: #131210;
+    --void-3: #1b1917;
+    --text: #e9e6df;
+    --text-muted: #a9a49b;
+    --brass: #c9a961;
+    --brass-dim: #8a733f;
+    --olive: #8a9c4a;
+    --olive-bg: #23290f;
+    --olive-line: rgba(138, 156, 74, 0.35);
+    --ember: #ff6b4a;
+    --red-bg: #200302;
+    --red-line: rgba(255, 107, 74, 0.35);
+    --signal: #6fe0c9;
+    --signal-dim: rgba(111, 224, 201, 0.3);
+    --overlay-a: rgba(8, 7, 6, 0.85);
+    --overlay-b: rgba(8, 7, 6, 0.92);
+    --font-display: "Chakra Petch", system-ui, -apple-system, sans-serif;
+    --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Space Mono", "SFMono-Regular", Consolas, monospace;
+    --nav-h: 4rem;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--void);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .display {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin: 0;
+  }
+
+  a { color: inherit; }
+  img, svg { display: block; max-width: 100%; }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 1rem;
+    background: var(--brass);
+    color: var(--void);
+    padding: 0.75rem 1.25rem;
+    z-index: 300;
+    font-weight: 600;
+    border-radius: 0 0 4px 4px;
+    transition: top 0.2s ease;
+  }
+  .skip-link:focus { top: 0; }
+
+  :focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 78rem;
+    margin: 0 auto;
+    padding-inline: 1.25rem;
+  }
+
+  section { position: relative; padding-block: 5rem; }
+
+  /* ---------- Placeholder image credit chips ----------
+     Every real Wikimedia photo gets one of these, with a solid
+     near-opaque chip behind the text so contrast never depends on
+     whatever's happening in the photo underneath it. */
+  .img-tag {
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    background: rgba(10, 9, 8, 0.78);
+    border: 1px solid rgba(233, 230, 223, 0.35);
+    padding: 0.3rem 0.55rem;
+    border-radius: 2px;
+    z-index: 6;
+    pointer-events: none;
+  }
+  .img-tag--bl { left: 1rem; bottom: 1rem; }
+  .img-tag--br { right: 1rem; bottom: 1rem; }
+  .img-tag--tr { right: 1rem; top: 1rem; }
+  .img-tag--tl { left: 1rem; top: 1rem; }
+
+  /* ---------- Canvases (decorative, non-interactive) ---------- */
+  #burst-canvas, #trail-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 5;
+  }
+  #burst-canvas { z-index: 40; }
+
+  /* ---------- Topographic contour motif ----------
+     The signature idea: contour-line loops that read simultaneously as
+     a climbing-route topo and a tactical map overlay. One shared SVG
+     template is mounted in several places; lines draw themselves in via
+     stroke-dashoffset, either immediately (hero) or on scroll-into-view
+     (everywhere else), never re-triggering once drawn. */
+  .topo-mount { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+  .topo-svg { width: 100%; height: 100%; }
+  .topo-path { fill: none; }
+  .topo-label {
+    font-family: var(--font-mono);
+    fill: var(--brass);
+    opacity: 0.55;
+    letter-spacing: 0.05em;
+  }
+
+  /* ---------- Nav ---------- */
+  .site-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    background: rgba(10, 9, 8, 0.78);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(201, 169, 97, 0.15);
+  }
+  .site-nav .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    gap: 0.75rem;
+  }
+  .nav-brand-group { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+  .nav-brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .nav-brand span { color: var(--brass); }
+
+  /* Morse-code easter egg: blinks "NGFD" in real morse timing. Purely
+     decorative and non-informational, so it's aria-hidden; a screen
+     reader loses nothing by skipping it. */
+  .morse-light {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--signal-dim);
+    box-shadow: 0 0 0 rgba(111, 224, 201, 0);
+    flex: none;
+    transition: background 0.05s linear, box-shadow 0.05s linear;
+  }
+  .morse-light.is-on {
+    background: var(--signal);
+    box-shadow: 0 0 6px 1px rgba(111, 224, 201, 0.8);
+  }
+  .morse-light.is-steady {
+    background: var(--signal);
+    box-shadow: 0 0 4px 1px rgba(111, 224, 201, 0.5);
+  }
+
+  .nav-toggle {
+    background: none;
+    border: 1px solid rgba(201, 169, 97, 0.4);
+    color: var(--text);
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .nav-toggle svg { width: 1.25rem; height: 1.25rem; }
+
+  .nav-menu {
+    display: none;
+    flex-direction: column;
+    gap: 0.25rem;
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: var(--void-2);
+    padding: 0.75rem;
+    border-top: 1px solid rgba(201, 169, 97, 0.15);
+    list-style: none;
+    margin: 0;
+  }
+  .nav-menu.is-open { display: flex; }
+  .nav-menu li { width: 100%; }
+
+  .nav-link {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    padding: 0.65rem 1rem;
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .nav-link::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--brass);
+    transform: scaleY(2);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    z-index: 2;
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--brass);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease 0.12s;
+    z-index: 0;
+  }
+  .nav-link span {
+    position: relative;
+    z-index: 1;
+    transition: color 0.25s ease 0.12s;
+  }
+  .nav-link:hover::before,
+  .nav-link:focus-visible::before { transform: scaleY(1); opacity: 1; }
+  .nav-link:hover::after,
+  .nav-link:focus-visible::after { transform: scaleX(1); }
+  .nav-link:hover span,
+  .nav-link:focus-visible span { color: var(--void); }
+
+  @media (min-width: 768px) {
+    .nav-toggle { display: none; }
+    .nav-menu {
+      display: flex !important;
+      flex-direction: row;
+      position: static;
+      background: none;
+      padding: 0;
+      border: 0;
+      gap: 0.5rem;
+    }
+  }
+
+  /* ---------- Hero ----------
+     Second revision, per developer feedback: the whole-image dark wash
+     from the first pass made text legible everywhere but hid the photo
+     itself — the diorama IS the sales pitch, so it needs to read clearly,
+     not sit under a veil. A flat overlay light enough to show the scene
+     can't also guarantee text contrast everywhere in the photo (verified
+     by computing contrast at several tint alphas against a brightened
+     worst-case pixel — even a 0.4-0.55 alpha wash still failed 4.5:1
+     comfortably). So the wash is gone; legibility now comes from a
+     `.hero-scrim` that's dark ONLY in a soft radial patch sized to the
+     text column and fades to fully transparent well before the hero's
+     edges — most of the image stays untouched and bright.
+     Layer order (back to front): `.hero-photo` (own brightness filter,
+     independent of the tint below it) -> `.hero-edge-fade` (fades the
+     photo's outer edge into --void, so the crop doesn't need aggressive
+     zoom to hide the frame/margin) -> `.hero-scrim` (localized dark patch
+     behind text only) -> two ambient brand-color glows -> counter-
+     rotating cog field -> topo contour lines -> drifting ash motes ->
+     CRT scanline texture -> content. Split into separate divs (not one
+     `background` shorthand) specifically so `.hero-photo` can carry its
+     own `filter` without also brightening the tint/glow layers.
+     Crop/zoom, third pass: content bounds measured directly from the
+     569x481 source via Pillow (column/row brightness profiles) — the
+     real scene occupies roughly x:67-471, y:37-419 (~71% width, ~79%
+     height) with black margin and the grey display-case frame posts
+     outside that. Zoom went 200% -> 145% -> 112% across feedback rounds;
+     each step traded a bit of "frame fully cropped out" for "less
+     upscale blur." At 112% the frame/margin may partially show at the
+     very edge — that's what `.hero-edge-fade` is for: it fades that
+     edge into --void (the page's own background color) instead of
+     ending in a hard rectangle, explicitly OK'd by the developer as the
+     trade for keeping zoom low. No Playwright/screenshot tool is
+     available in this environment to visually confirm the exact result
+     pixel-for-pixel — these values are grounded in the measured content
+     bounds, not guessed, but keep nudging `background-size`/the fade's
+     `62%`/`100%` stops once you've seen it live. */
+  .hero {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-top: calc(var(--nav-h) + 2rem);
+    padding-bottom: 3rem;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--void);
+  }
+
+  .hero-photo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* Swapped to a much higher-res source (3862x2268 vs. the original
+       569x481) with no display-case frame visible at all — just the
+       diorama base against black. No more frame-cropping problem, so no
+       extra zoom multiplier needed anywhere: plain `cover` at every
+       breakpoint, position biased slightly down to keep the model base
+       in frame rather than centering on empty black headroom. */
+    background-image: url("assets/diorama_2.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 50% 62%;
+    filter: brightness(0.92) saturate(1.05);
+  }
+
+  /* Edge fade: fades the photo's outer edge into the page's own --void
+     color, so whatever's at the true edge of the crop (frame post, black
+     margin) blends away softly instead of ending in a hard rectangle —
+     explicitly OK'd by the developer as a trade for a less aggressive
+     zoom. Sits directly on top of the photo, below the scrim/glows. */
+  .hero-edge-fade {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* Widened/multi-stop for a slower, more gradual fade to black at the
+       edges (was a tighter transparent-62%->void-100% two-stop fade). */
+    background: radial-gradient(ellipse 80% 78% at 50% 48%, transparent 32%, rgba(10, 9, 8, 0.5) 62%, var(--void) 100%);
+  }
+
+  /* Localized scrim: dark only behind the text column, fading to fully
+     transparent well before the hero's edges, so the photo stays bright
+     and visible everywhere else. Two ambient brand-color glows sit above
+     it, unchanged from before. */
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 52% at 50% 50%, rgba(8, 7, 6, 0.84) 0%, rgba(8, 7, 6, 0.54) 45%, transparent 78%),
+      radial-gradient(ellipse 80% 60% at 50% 20%, rgba(201, 169, 97, 0.14), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(255, 107, 74, 0.10), transparent 60%);
+  }
+
+  /* Contrast audit (see code comment near footer credits for method):
+     worst-case bright pixel rgb(232,240,242) at x=205,y=293 (a
+     marine-armor edge highlight), after the .hero-photo brightness(1.03)
+     filter (pulled back from 1.15 per "tinge darker" feedback) becomes
+     ~(239,247,249) — still the harder case to test against. Composited
+     under the scrim's peak 0.84-alpha center (bumped up from 0.8, the
+     only place text ever sits), computed directly (not estimated):
+     --text (#e9e6df) 11.0:1, --brass 6.09:1, --signal 8.61:1 — all clear
+     4.5:1 with real margin. --ember 4.87:1, clear of its 3:1
+     large/interactive threshold. Everywhere outside the scrim's ~78%-radius
+     fade, there's no dark wash at all — the photo reads at near-full
+     brightness, which is the point: most of the hero is unobstructed
+     scene, not veiled. */
+
+  /* Adeptus-Mechanicus cog field: two counter-rotating gear silhouettes
+     in the old radar's spot — same "ambient background instrumentation"
+     role, but reads as machine-spirit clockwork instead of generic
+     sci-fi HUD radar. Gears are generated once at runtime (see JS), not
+     hand-authored per-frame geometry, so the cost is a single reflow. */
+  .cog-field {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .cog {
+    position: absolute;
+    color: var(--brass);
+    opacity: 0.1;
+    transform-origin: 50% 50%;
+  }
+  .cog--a {
+    width: 46rem; height: 46rem;
+    right: -15rem; bottom: -17rem;
+    animation: cogSpin 150s linear infinite;
+  }
+  .cog--b {
+    width: 23rem; height: 23rem;
+    right: 6rem; bottom: -3rem;
+    color: var(--olive);
+    opacity: 0.13;
+    animation: cogSpinReverse 100s linear infinite;
+  }
+  @keyframes cogSpin { to { transform: rotate(360deg); } }
+  @keyframes cogSpinReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+
+  /* Ash / ember motes drifting up through the hero — cheap CSS-only
+     particles (no canvas, no per-frame JS), doubling as a nod to both
+     the forge-spark photo and the cathedral incense. Count capped at
+     16 spans, positions/timings randomized once by JS on load. */
+  .ash-field {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .ash-mote {
+    position: absolute;
+    bottom: -4%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--brass);
+    opacity: 0;
+    animation-name: ashRise;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  @keyframes ashRise {
+    0% { transform: translate(0, 0); opacity: 0; }
+    12% { opacity: 0.75; }
+    55% { opacity: 0.45; }
+    100% { transform: translate(var(--drift, 14px), -108vh); opacity: 0; }
+  }
+
+  .crt-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.045) 0px,
+      rgba(255, 255, 255, 0.045) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+    animation: crtFlicker 6s ease-in-out infinite;
+  }
+  @keyframes crtFlicker {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+    62% { opacity: 0.7; }
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .emblem-wrap {
+    margin-bottom: 1.25rem;
+    animation: breathe 7s ease-in-out infinite;
+    transform-origin: center;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.045) translateY(-3px); }
+  }
+
+  /* Terminal boot-sequence readout, ahead of the headline scramble */
+  .boot-sequence {
+    font-family: var(--font-mono);
+    font-size: clamp(0.68rem, 1.6vw, 0.85rem);
+    letter-spacing: 0.06em;
+    color: var(--signal);
+    background: rgba(9, 12, 11, 0.55);
+    border: 1px solid rgba(111, 224, 201, 0.3);
+    border-radius: 3px;
+    padding: 0.5rem 0.9rem;
+    margin-bottom: 1.1rem;
+    min-height: 1.6em;
+    min-width: 15rem;
+    text-align: left;
+  }
+  .boot-sequence.is-empty { display: none; }
+  .boot-sequence::after {
+    content: "_";
+    margin-left: 0.15em;
+    animation: cursorBlink 1s steps(1) infinite;
+  }
+
+  @keyframes cursorBlink { 50% { opacity: 0; } }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 9vw, 5.5rem);
+    line-height: 1.02;
+    font-weight: 700;
+    color: var(--text);
+    display: inline-block;
+  }
+  .hero-title .accent { color: var(--brass); }
+  .hero-title .char { display: inline-block; }
+
+  /* Contrast recompute: reuses the hero audit above (worst-case bright
+     pixel under the scrim's 0.84-alpha center, already computed there) —
+     --signal comes out to 8.61:1 against that background, comfortably
+     clearing 4.5:1 even though this is small (0.65-0.75rem) text with no
+     large-text exception available. Same background as the rest of the
+     hero, so no new pixel sampling was needed. */
+  .hero-warning {
+    display: block;
+    margin-top: 0.9rem;
+    max-width: 34rem;
+    font-family: var(--font-mono);
+    font-size: clamp(0.65rem, 1.4vw, 0.75rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .hero-tagline {
+    margin-top: 1.25rem;
+    max-width: 34rem;
+    font-size: clamp(1rem, 2.4vw, 1.2rem);
+    color: var(--text);
+  }
+
+  .cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 2.25rem;
+    padding: 0.95rem 2rem;
+    background: var(--brass);
+    color: var(--void);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+    box-shadow: 0 0 0 rgba(201, 169, 97, 0);
+  }
+  .cta:hover, .cta:focus-visible {
+    box-shadow: 0 8px 30px rgba(201, 169, 97, 0.35);
+  }
+  .cta svg { width: 1rem; height: 1rem; transition: transform 0.2s ease; }
+  .cta:hover svg { transform: translateX(3px); }
+
+  /* Purity seal: a small wax-seal glyph that stamps in once the
+     headline finishes resolving — a quiet 40k prop (every relic gets
+     one) standing in for a "verified / sanctioned" flourish. */
+  .purity-seal {
+    width: 2.1rem;
+    height: 2.1rem;
+    margin-top: 1.1rem;
+    color: var(--brass);
+    opacity: 0;
+    transform: scale(1.6);
+  }
+  .purity-seal.is-stamped {
+    animation: sealStamp 0.5s cubic-bezier(0.3, 1.6, 0.4, 1) forwards;
+  }
+  @keyframes sealStamp {
+    0% { opacity: 0; transform: scale(1.7); }
+    55% { opacity: 1; transform: scale(0.92); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Auspex-lock reticle: a small bracket cursor that eases toward the
+     pointer (lerped in the same rAF loop as the spark trail below, so
+     it costs nothing extra) and tightens/recolors over anything
+     clickable — the "better pointer animation" layer, distinct from
+     the spark trail. Pointer-fine + no-reduced-motion only; hidden
+     entirely on touch. */
+  .auspex-reticle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    pointer-events: none;
+    z-index: 60;
+    color: var(--brass);
+    opacity: 0;
+    transition: opacity 0.2s ease, color 0.15s ease;
+    will-change: transform;
+  }
+  .auspex-reticle.is-active { opacity: 0.85; }
+  .auspex-reticle.is-locked { color: var(--signal); }
+  .auspex-reticle svg { width: 100%; height: 100%; display: block; }
+  .auspex-reticle .reticle-lock-dot { transition: r 0.15s ease, opacity 0.15s ease; }
+
+  /* ---------- Section headers ---------- */
+  .section-kicker {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    color: var(--brass-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .section-title {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    margin-bottom: 1rem;
+  }
+  .section-lede {
+    color: var(--text-muted);
+    max-width: 40rem;
+    margin-bottom: 2.5rem;
+  }
+
+  /* ---------- Chevron / stripe divider motif ----------
+     An abstract nod to service insignia — offset zigzag stripes, never
+     a literal rank chevron — used as section-break rules. */
+  .chevron-rule {
+    height: 16px;
+    margin-inline: auto;
+    max-width: 78rem;
+    background-image:
+      linear-gradient(135deg, transparent 44%, var(--brass-dim) 44% 56%, transparent 56%),
+      linear-gradient(45deg, transparent 44%, var(--olive) 44% 56%, transparent 56%);
+    background-size: 28px 28px, 28px 28px;
+    background-position: 0 0, 14px 0;
+    background-repeat: repeat-x;
+    opacity: 0.3;
+  }
+
+  .chevron-mark {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: inherit;
+    opacity: 0.8;
+    z-index: 2;
+  }
+
+  /* ---------- Gallery ---------- */
+  .gallery {
+    background: linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+  }
+  .gallery-frame {
+    position: relative;
+    padding-block: 1.5rem;
+  }
+  .gallery-frame::before,
+  .gallery-frame::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 6px;
+    background-image:
+      linear-gradient(var(--overlay-a), var(--overlay-b)),
+      url("https://upload.wikimedia.org/wikipedia/commons/8/88/Gold_metallic_finish_clean_smooth_seamless_metal_surface_sheet_texture.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.9;
+  }
+  .gallery-frame::before { top: 0; }
+  .gallery-frame::after { bottom: 0; }
+
+  .gallery-backdrop { position: relative; }
+  .gallery-backdrop::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--overlay-a), var(--overlay-b)),
+      url("https://upload.wikimedia.org/wikipedia/commons/d/d8/Contour_map_%28PSF%29.png");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.55;
+    z-index: 0;
+  }
+  .gallery-backdrop > .topo-mount { z-index: 1; }
+  /* Masonry via CSS multi-column: chosen over a manual grid-auto-rows span
+     calculation because columns pack items with genuine gap-filling and no
+     per-item math, at the cost of visual reading order running down each
+     column before wrapping to the next — an accepted, common masonry
+     trade-off. Keyboard/DOM order stays simple top-to-bottom regardless, so
+     this only affects the visual glance-order, not navigation order. */
+  .gallery-grid {
+    position: relative;
+    z-index: 2;
+    columns: 1;
+    column-gap: 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .gallery-grid { columns: 2; }
+  }
+  @media (min-width: 1024px) {
+    .gallery-grid { columns: 3; column-gap: 1.5rem; }
+  }
+
+  .card {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    cursor: pointer;
+    text-align: left;
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(201, 169, 97, 0.18);
+    isolation: isolate;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+  }
+  @media (min-width: 1024px) {
+    .card { margin-bottom: 1.5rem; }
+  }
+  .card--landscape { aspect-ratio: 3 / 2; }
+  .card--portrait { aspect-ratio: 2 / 3; }
+  .card:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+  }
+  .card--am { color: var(--olive); }
+  .card--kh { color: var(--ember); }
+
+  .card-badge {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    background: rgba(10, 9, 8, 0.55);
+    border: 1px solid rgba(233, 230, 223, 0.35);
+    padding: 0.25rem 0.5rem;
+    border-radius: 2px;
+    z-index: 2;
+  }
+  .card-caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 1.75rem 1rem 1rem;
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85) 55%, rgba(0, 0, 0, 0.92));
+    z-index: 2;
+  }
+  .card-caption .name {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--text);
+    display: block;
+  }
+  .card-caption .faction {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 0.15rem;
+    color: currentColor;
+  }
+  .card-hint {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(233, 230, 223, 0.75);
+    background: rgba(10, 9, 8, 0.5);
+    padding: 0.2rem 0.4rem;
+    border-radius: 2px;
+    z-index: 2;
+  }
+
+  .card--am1 { background: linear-gradient(135deg, #2b2f1a 0%, #4b5320 45%, #1c2010 100%), repeating-linear-gradient(45deg, rgba(201,169,97,0.07) 0 2px, transparent 2px 9px); background-blend-mode: overlay; }
+  .card--am2 { background: radial-gradient(circle at 30% 20%, #5a6a2e, #23290f 70%), repeating-linear-gradient(115deg, rgba(233,230,223,0.05) 0 3px, transparent 3px 11px); background-blend-mode: overlay; }
+  .card--am3 { background: conic-gradient(from 210deg at 60% 40%, #3f4a1f, #8a9c4a 30%, #23290f 60%, #3f4a1f); }
+  .card--kh1 { background: linear-gradient(150deg, #3a0303 0%, #6b0000 45%, #200302 100%), repeating-linear-gradient(60deg, rgba(201,169,97,0.08) 0 2px, transparent 2px 10px); background-blend-mode: overlay; }
+  .card--kh2 { background: radial-gradient(circle at 70% 30%, #8a0303, #200302 70%), repeating-linear-gradient(20deg, rgba(255,107,74,0.06) 0 3px, transparent 3px 12px); background-blend-mode: overlay; }
+  .card--kh3 { background: conic-gradient(from 40deg at 40% 60%, #200302, #ff6b4a 25%, #4a0505 55%, #200302); }
+
+  /* Interference burst on hover/focus: a light-sweep plus a brief
+     red/cyan channel-split flash, then a clean lock — like a cogitator
+     display fighting off static before the feed steadies. Rebuilt from
+     the earlier clip-path version, which clipped the card's rounded
+     corners into hard rectangular slices mid-animation and read as a
+     rendering bug rather than a deliberate effect. This version only
+     ever adds two full-bleed pseudo-layers on top of the (unclipped)
+     card, so the border-radius and layout never visibly break.
+     Class is added/removed by JS on pointerenter and focus; the global
+     reduced-motion rule collapses both to an instant no-op frame. */
+  .card {
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .card:hover,
+  .card:focus-visible {
+    transform: scale(1.015);
+  }
+  .card::before,
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .card::before {
+    background: linear-gradient(115deg, transparent 42%, rgba(233, 230, 223, 0.4) 50%, transparent 58%);
+    mix-blend-mode: overlay;
+  }
+  .card::after {
+    background:
+      linear-gradient(115deg, rgba(255, 70, 50, 0.32) 0%, transparent 40%),
+      linear-gradient(295deg, rgba(90, 220, 255, 0.26) 0%, transparent 40%);
+    mix-blend-mode: screen;
+  }
+  .card.is-active::before {
+    animation: cardSweep 0.5s ease-out;
+  }
+  .card.is-active::after {
+    animation: cardChroma 0.3s steps(3, end);
+  }
+  @keyframes cardSweep {
+    0% { transform: translateX(-120%); opacity: 0; }
+    18% { opacity: 1; }
+    100% { transform: translateX(120%); opacity: 0; }
+  }
+  @keyframes cardChroma {
+    0% { opacity: 0; transform: translate(0, 0); }
+    35% { opacity: 1; transform: translate(-2px, 1px); }
+    70% { opacity: 0.55; transform: translate(2px, -1px); }
+    100% { opacity: 0; transform: translate(0, 0); }
+  }
+
+  /* ---------- Interlude (cathedral divider) ---------- */
+  .interlude {
+    padding-block: 6rem;
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+    background:
+      linear-gradient(var(--overlay-a), var(--overlay-b)),
+      url("https://upload.wikimedia.org/wikipedia/commons/5/58/Interior_of_Gothic_Cathedral_-_Seville_-_Spain.jpg");
+    background-size: cover;
+    background-position: center 30%;
+  }
+  .interlude-quote {
+    position: relative;
+    z-index: 2;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 3.2vw, 1.9rem);
+    max-width: 42rem;
+    margin: 0 auto;
+    color: var(--text);
+    text-transform: none;
+    letter-spacing: 0.01em;
+  }
+  .interlude-quote span { color: var(--brass); }
+
+  /* ---------- About ---------- */
+  .about {
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(var(--overlay-a), var(--overlay-b)),
+      radial-gradient(ellipse 70% 60% at 20% 30%, rgba(138, 156, 74, 0.12), transparent 60%),
+      url("https://upload.wikimedia.org/wikipedia/commons/b/b1/Grey_rough_granite_rock_seamless_stone_surface_texture.jpg");
+    background-size: cover, cover, cover;
+    background-position: center;
+  }
+  .about-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (min-width: 768px) {
+    .about-grid { grid-template-columns: 1fr 1.4fr; }
+  }
+  .about-figure {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    border: 1px solid var(--olive-line);
+    background: linear-gradient(160deg, #3f4a1f, #8a9c4a 40%, #1c2010 90%);
+    overflow: hidden;
+  }
+  .about p { max-width: 42rem; color: var(--text); }
+  .about p + p { margin-top: 1rem; }
+
+  /* ---------- Commission ---------- */
+  .commission {
+    background: radial-gradient(ellipse 70% 60% at 80% 40%, rgba(255, 107, 74, 0.08), transparent 60%), var(--void-2);
+  }
+  .commission-panel {
+    position: relative;
+    border: 1px solid var(--red-line);
+    border-radius: 8px;
+    padding: 2rem;
+    background: linear-gradient(160deg, rgba(74, 5, 5, 0.25), rgba(10, 9, 8, 0.4));
+  }
+  .commission-panel p { color: var(--text-muted); max-width: 38rem; }
+  .mailto-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    padding: 0.85rem 1.75rem;
+    border: 1px solid var(--ember);
+    color: var(--ember);
+    text-decoration: none;
+    font-family: var(--font-display);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    border-radius: 2px;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+  .mailto-btn:hover, .mailto-btn:focus-visible {
+    background: var(--ember);
+    color: var(--void);
+    transform: translateY(-2px);
+  }
+
+  /* ---------- Dispatches ---------- */
+  .dispatches { background: var(--void); }
+  .post-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .post-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .post-card {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    position: relative;
+    border: 1px solid rgba(201, 169, 97, 0.18);
+    border-radius: 6px;
+    padding: 1.5rem;
+    background: var(--void-2);
+    color: var(--olive);
+  }
+  .post-card:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+  }
+  .post-card .tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--void);
+    background: var(--brass);
+    padding: 0.2rem 0.55rem;
+    border-radius: 2px;
+    margin-bottom: 0.85rem;
+  }
+  .post-card h3 { font-size: 1.15rem; line-height: 1.3; color: var(--text); }
+  .post-card .read-more {
+    display: block;
+    margin-top: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--signal);
+  }
+  .archive-cta { margin-top: 2rem; text-align: center; }
+  .archive-btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.75rem;
+    border: 1px dashed rgba(169, 164, 155, 0.5);
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    cursor: not-allowed;
+  }
+  .archive-btn svg { width: 1rem; height: 1rem; }
+  .archive-note {
+    margin-top: 0.65rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    max-width: 26rem;
+    margin-inline: auto;
+  }
+
+  /* ---------- Footer ---------- */
+  .site-footer {
+    border-top: 1px solid rgba(201, 169, 97, 0.15);
+    padding-block: 2.5rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .footer-social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid rgba(201, 169, 97, 0.3);
+    border-radius: 50%;
+    margin-bottom: 1rem;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-social:hover, .footer-social:focus-visible {
+    border-color: var(--brass);
+    color: var(--brass);
+  }
+  .footer-social svg { width: 1.15rem; height: 1.15rem; }
+  .footer-credits {
+    margin-top: 1rem;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0.75;
+  }
+  .footer-morse {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  /* ---------- Modal (native <dialog>, vanilla JS) ---------- */
+  .modal {
+    border: none;
+    padding: 0;
+    background: transparent;
+    max-width: none;
+    max-height: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal:not([open]) { display: none; }
+  .modal::backdrop {
+    background: rgba(8, 7, 6, 0.78);
+  }
+  .modal-content {
+    position: relative;
+    width: min(34rem, calc(100vw - 2.5rem));
+    max-height: calc(100svh - 4rem);
+    overflow-y: auto;
+    background: var(--void-2);
+    border: 1px solid var(--brass-dim);
+    border-radius: 8px;
+    padding: 2.25rem 1.75rem 1.75rem;
+  }
+  .modal-content::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background-image:
+      linear-gradient(var(--overlay-a), var(--overlay-b)),
+      url("https://upload.wikimedia.org/wikipedia/commons/8/88/Gold_metallic_finish_clean_smooth_seamless_metal_surface_sheet_texture.jpg");
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px 8px 0 0;
+  }
+  .modal-close {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(201, 169, 97, 0.3);
+    border-radius: 4px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .modal-close svg { width: 1rem; height: 1rem; }
+  .modal-close:hover, .modal-close:focus-visible {
+    border-color: var(--brass);
+    color: var(--brass);
+  }
+  .modal-kicker {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass-dim);
+    margin: 0 0 0.4rem;
+  }
+  .modal-title {
+    font-size: clamp(1.3rem, 3vw, 1.7rem);
+    margin-bottom: 1rem;
+  }
+  .modal-body p {
+    color: var(--text-muted);
+    margin: 0 0 0.85rem;
+  }
+  .modal-body p:last-child { margin-bottom: 0; }
+
+  /* ---------- Double-headed eagle motif ----------
+     Original abstract/angular rendering (straight-line wings, diamond
+     heads), a general heraldic device, not a reproduction of any
+     trademarked logo. Used twice: a large near-invisible watermark in
+     the Showcase section, and a small "stamp" version on the top
+     pricing tier. Both are inert static SVG (no JS, no animation) and
+     live inside an aria-hidden wrapper since they're pure ornament. */
+  .eagle-mark { color: var(--brass); }
+  .eagle-watermark {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .eagle-mark--watermark {
+    position: absolute;
+    right: -5rem;
+    top: -2rem;
+    width: 34rem;
+    height: auto;
+    opacity: 0.05;
+  }
+  .tier-stamp { display: block; margin-bottom: 0.6rem; }
+  .eagle-mark--stamp { width: 2rem; height: auto; opacity: 0.9; color: var(--ember); }
+
+  /* ---------- Showcase (diorama / environment study) ----------
+     A single larger centerpiece photo instead of a grid, deliberately
+     contained/modest in size (source photo is only 569x481) rather than
+     blown up full-bleed, with the display-case frame edges cropped out
+     via object-position + a scale nudge, then faded into the dark
+     backdrop with a radial vignette so it reads as an in-universe relic
+     rather than a raw product photo. */
+  .showcase {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--void-2) 0%, var(--void) 100%);
+  }
+  .showcase-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+  }
+  @media (min-width: 768px) {
+    .showcase-grid { grid-template-columns: 1.1fr 1fr; }
+    .showcase-grid.is-reverse { grid-template-columns: 1fr 1.1fr; }
+  }
+  .showcase-frame {
+    position: relative;
+    width: min(26rem, 100%);
+    aspect-ratio: 4 / 3.3;
+    margin-inline: auto;
+    border-radius: 8px;
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid var(--red-line);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  }
+  .showcase-frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* No extra transform:scale() needed now — swapped to a much
+       higher-res, frame-free source photo, so the old crop-out-the-
+       display-case-frame zoom is gone (it would just add gratuitous
+       blur on this image for no reason). */
+    object-position: 50% 58%;
+    filter: saturate(1.05) contrast(1.04);
+  }
+  .showcase-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(ellipse 62% 58% at 50% 44%, transparent 35%, rgba(8, 7, 6, 0.55) 68%, rgba(8, 7, 6, 0.97) 100%);
+  }
+  .showcase-copy p { color: var(--text); max-width: 34rem; }
+  .showcase-copy p + p { margin-top: 1rem; }
+  .showcase-tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+  }
+  .showcase-tag {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--signal);
+    border: 1px solid var(--signal-dim);
+    padding: 0.3rem 0.6rem;
+    border-radius: 2px;
+  }
+
+  /* ---------- Pricing (requisition manifest) ---------- */
+  .pricing { background: var(--void); }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .pricing-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .tier-card {
+    position: relative;
+    border: 1px solid rgba(201, 169, 97, 0.18);
+    border-radius: 8px;
+    padding: 1.75rem 1.5rem;
+    background: linear-gradient(160deg, var(--void-2), var(--void-3));
+  }
+  .tier-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brass-dim);
+    margin: 0 0 0.35rem;
+  }
+  .tier-name {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+  .tier-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .tier-price .amount {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brass);
+  }
+  .tier-price .unit {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tier-features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .tier-features li {
+    position: relative;
+    padding-left: 1.1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .tier-features li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 6px;
+    height: 6px;
+    background: var(--olive);
+    border-radius: 1px;
+    transform: rotate(45deg);
+  }
+  .tier-card--display { border-color: rgba(201, 169, 97, 0.3); }
+  .tier-card--display .tier-features li::before { background: var(--brass); }
+  /* Foundry-sparks photo's new home: previously the hero background, now a forge/craft
+     accent scoped to just the top commission tier (not the whole Pricing section) so the
+     contrast blast radius stays small. This card only ever shows --text/--text-muted/
+     --ember over it, never --brass-dim — brass-dim is the one token that fails against
+     this photo's worst-case pixel (~2.9:1), which is why it doesn't live somewhere that
+     pairs this photo with a .section-kicker. */
+  .tier-card--centerpiece {
+    border-color: var(--red-line);
+    background:
+      linear-gradient(160deg, var(--overlay-a), var(--overlay-b)),
+      url("https://upload.wikimedia.org/wikipedia/commons/4/43/Metal_Work_Sparks.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+  /* Contrast audit: reusing the same overlay-a/overlay-b tint tokens as the hero's old
+     sparks-photo treatment, so its worst-case composite carries over directly. At the
+     lighter 0.85-alpha end: --text ~11.2:1, --text-muted ~5.6:1, --ember ~4.9:1 (this one
+     matters here — .tier-kicker and .tier-price .amount both use --ember at small/
+     borderline sizes in this card, not just large/interactive elements, so it has to
+     clear 4.5:1 on its own merits, and it does). */
+  .tier-card--centerpiece .tier-price .amount { color: var(--ember); font-size: 1.15rem; }
+  .tier-card--centerpiece .tier-features li::before { background: var(--ember); }
+  .tier-card--centerpiece .tier-kicker { color: var(--ember); }
+
+  /* Chaos-spike accent: a literal jagged/angular edge (clip-path
+     zigzag, not GW's raw star icon) marking the top commission tier as
+     the "unbounded scope" one, an angular counterpoint to the rest of
+     the file's rounded brass geometry. Purely decorative, aria-hidden. */
+  .tier-spike {
+    position: absolute;
+    top: -9px;
+    left: 0.75rem;
+    right: 0.75rem;
+    height: 9px;
+    background: var(--ember);
+    opacity: 0.85;
+    clip-path: polygon(
+      0% 100%, 4% 0%, 8% 100%, 12% 0%, 16% 100%, 20% 0%, 24% 100%, 28% 0%,
+      32% 100%, 36% 0%, 40% 100%, 44% 0%, 48% 100%, 52% 0%, 56% 100%, 60% 0%,
+      64% 100%, 68% 0%, 72% 100%, 76% 0%, 80% 100%, 84% 0%, 88% 100%, 92% 0%,
+      96% 100%, 100% 0%, 100% 100%
+    );
+  }
+  .pricing-note {
+    margin-top: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    max-width: 42rem;
+  }
+
+  /* ---------- Commission (intake) ---------- */
+  .commission-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (min-width: 768px) {
+    .commission-grid { grid-template-columns: 1fr 1fr; }
+  }
+  /* Adeptus-Mechanicus red lens-glow: a small pulsing "cogitator status
+     lens" dot, ember/red rather than the cyan --signal used elsewhere,
+     so it reads as a distinct tech-priest accent. Pure CSS keyframe
+     (no JS cost); paused by the existing tab-hidden visibilitychange
+     rule and collapsed by the global reduced-motion block below. */
+  .lens-glow {
+    display: inline-block;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--ember);
+    margin-inline-end: 0.5rem;
+    vertical-align: middle;
+    animation: lensPulse 3.2s ease-in-out infinite;
+  }
+  @keyframes lensPulse {
+    0%, 100% { opacity: 0.55; box-shadow: 0 0 4px 1px rgba(255, 107, 74, 0.4); }
+    50% { opacity: 1; box-shadow: 0 0 10px 2px rgba(255, 107, 74, 0.85); }
+  }
+  .intake-panel {
+    border: 1px solid var(--olive-line);
+    border-radius: 8px;
+    padding: 1.75rem;
+    background: linear-gradient(160deg, rgba(35, 41, 15, 0.35), rgba(10, 9, 8, 0.4));
+  }
+  .intake-kicker {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--olive);
+    margin: 0 0 1rem;
+  }
+  .intake-list {
+    list-style: none;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+  .intake-list li {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  .intake-icon {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.15rem;
+    color: var(--olive);
+  }
+  .intake-list strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+  .intake-list span {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+  }
+  .intake-note {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin: 0;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(201, 169, 97, 0.15);
+  }
+
+  /* ---------- Reduced motion: collapse everything to resting state ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    html { scroll-behavior: auto; }
+    #burst-canvas, #trail-canvas { display: none; }
+    .boot-sequence { display: none !important; }
+    .boot-sequence::after { display: none; }
+  }
+
+  /* Tab-hidden pause for ambient CSS-animation loops (cog field, CRT
+     flicker, ash motes) — toggled by JS on visibilitychange so these
+     don't burn cycles on a backgrounded tab. Canvas loops (burst/trail)
+     and the morse-blink timer handle their own visibility checks in JS. */
+  .tab-hidden .cog,
+  .tab-hidden .crt-overlay,
+  .tab-hidden .ash-mote,
+  .tab-hidden .lens-glow {
+    animation-play-state: paused;
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="site-nav" aria-label="Primary">
+  <div class="container">
+    <div class="nav-brand-group">
+      <a class="nav-brand" href="#hero">Never Go Full <span>Dave</span></a>
+      <span class="morse-light" id="morseLight" aria-hidden="true" title="Machine-spirit status indicator"></span>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navMenu" aria-label="Toggle navigation menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <ul class="nav-menu" id="navMenu">
+      <li><a class="nav-link magnetic" href="#gallery"><span>Gallery</span></a></li>
+      <li><a class="nav-link magnetic" href="#showcase"><span>Showcase</span></a></li>
+      <li><a class="nav-link magnetic" href="#about"><span>About</span></a></li>
+      <li><a class="nav-link magnetic" href="#pricing"><span>Pricing</span></a></li>
+      <li><a class="nav-link magnetic" href="#commission"><span>Commission</span></a></li>
+      <li><a class="nav-link magnetic" href="#dispatches"><span>Dispatches</span></a></li>
+    </ul>
+  </div>
+</nav>
+
+<canvas id="burst-canvas" aria-hidden="true"></canvas>
+<canvas id="trail-canvas" aria-hidden="true"></canvas>
+<div class="auspex-reticle" id="auspexReticle" aria-hidden="true">
+  <svg viewBox="0 0 34 34" focusable="false">
+    <path d="M2 9V3.5A1.5 1.5 0 0 1 3.5 2H9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <path d="M25 2h5.5A1.5 1.5 0 0 1 32 3.5V9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <path d="M32 25v5.5a1.5 1.5 0 0 1-1.5 1.5H25" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <path d="M9 32H3.5A1.5 1.5 0 0 1 2 30.5V25" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle class="reticle-lock-dot" cx="17" cy="17" r="1.6" fill="currentColor"/>
+  </svg>
+</div>
+
+<main id="main">
+
+  <section class="hero" id="hero">
+    <div class="hero-photo" aria-hidden="true"></div>
+    <div class="hero-edge-fade" aria-hidden="true"></div>
+    <div class="hero-scrim" aria-hidden="true"></div>
+    <div class="cog-field" aria-hidden="true"></div>
+    <div class="topo-mount topo-mount--hero" aria-hidden="true"></div>
+    <div class="ash-field" aria-hidden="true"></div>
+    <div class="crt-overlay" aria-hidden="true"></div>
+    <span class="img-tag img-tag--bl">Placeholder — diorama photo, not Dave's studio</span>
+
+    <div class="hero-inner">
+      <div class="emblem-wrap">
+        <svg width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="Never Go Full Dave emblem">
+          <title>Never Go Full Dave emblem</title>
+          <defs>
+            <linearGradient id="emblemGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#c9a961"/>
+              <stop offset="1" stop-color="#ff6b4a"/>
+            </linearGradient>
+          </defs>
+          <polygon points="36,4 66,20 66,52 36,68 6,52 6,20" fill="none" stroke="url(#emblemGrad)" stroke-width="2"/>
+          <circle cx="36" cy="36" r="9" fill="none" stroke="url(#emblemGrad)" stroke-width="2"/>
+          <line x1="36" y1="12" x2="36" y2="24" stroke="url(#emblemGrad)" stroke-width="2"/>
+          <line x1="36" y1="48" x2="36" y2="60" stroke="url(#emblemGrad)" stroke-width="2"/>
+          <line x1="14" y1="36" x2="24" y2="36" stroke="url(#emblemGrad)" stroke-width="2"/>
+          <line x1="48" y1="36" x2="58" y2="36" stroke="url(#emblemGrad)" stroke-width="2"/>
+        </svg>
+      </div>
+
+      <p class="boot-sequence is-empty" id="bootSequence" aria-hidden="true"></p>
+
+      <h1 class="hero-title" id="heroTitle" data-text="NEVER GO FULL DAVE"></h1>
+      <p class="hero-warning">WARNING: Following this advice may result in miniatures painted far better than regulation requires.</p>
+      <p class="hero-tagline">Astra Militarum discipline. Khorne excess. A paintbrush caught somewhere in between.</p>
+      <a class="cta magnetic" href="#gallery">
+        <span>See the Work</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <svg class="purity-seal" id="puritySeal" viewBox="0 0 48 48" role="img" aria-label="Purity seal (decorative)" focusable="false">
+        <title>Purity seal</title>
+        <circle cx="24" cy="20" r="13" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <circle cx="24" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+        <path d="M24 12v16M17 20h14" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M18 32l6 10 6-10" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      </svg>
+    </div>
+  </section>
+
+  <section class="gallery" id="gallery">
+    <div class="container">
+      <p class="section-kicker">Direction A · Gallery</p>
+      <h2 class="section-title">The Work So Far</h2>
+      <p class="section-lede">Placeholder studies standing in for real photography — actual painted minis go here once the shelf gets photographed properly. Click any piece for process notes.</p>
+      <div class="gallery-frame">
+        <span class="img-tag img-tag--tl" style="position: relative; display: inline-block; margin-bottom: 0.75rem;">Placeholder — brass texture frame accent</span>
+        <div class="gallery-backdrop">
+          <div class="topo-mount topo-mount--gallery" aria-hidden="true"></div>
+          <span class="img-tag" style="position: absolute; right: 1rem; top: 0.5rem; z-index: 3;">Placeholder — public-domain topo scan</span>
+          <div class="gallery-grid">
+            <button type="button" class="card card--am card--am1 card--landscape" data-modal="am1" aria-haspopup="dialog">
+              <span class="card-badge">Placeholder study</span>
+              <span class="card-hint">Access dataslate</span>
+              <svg class="chevron-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none" opacity="0.6"/></svg>
+              <span class="card-caption">
+                <span class="name">Cadian Command Squad</span>
+                <span class="faction">Astra Militarum</span>
+              </span>
+            </button>
+            <button type="button" class="card card--am card--am2 card--portrait" data-modal="am2" aria-haspopup="dialog">
+              <span class="card-badge">Placeholder study</span>
+              <span class="card-hint">Access dataslate</span>
+              <svg class="chevron-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none" opacity="0.6"/></svg>
+              <span class="card-caption">
+                <span class="name">Death Korps Trench Line</span>
+                <span class="faction">Astra Militarum</span>
+              </span>
+            </button>
+            <button type="button" class="card card--am card--am3 card--landscape" data-modal="am3" aria-haspopup="dialog">
+              <span class="card-badge">Placeholder study</span>
+              <span class="card-hint">Access dataslate</span>
+              <svg class="chevron-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none" opacity="0.6"/></svg>
+              <span class="card-caption">
+                <span class="name">Leman Russ Weathering Study</span>
+                <span class="faction">Astra Militarum</span>
+              </span>
+            </button>
+            <button type="button" class="card card--kh card--kh1 card--portrait" data-modal="kh1" aria-haspopup="dialog">
+              <span class="card-badge">Placeholder study</span>
+              <span class="card-hint">Access dataslate</span>
+              <svg class="chevron-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none" opacity="0.6"/></svg>
+              <span class="card-caption">
+                <span class="name">Bloodletter Vanguard</span>
+                <span class="faction">Khorne</span>
+              </span>
+            </button>
+            <button type="button" class="card card--kh card--kh2 card--landscape" data-modal="kh2" aria-haspopup="dialog">
+              <span class="card-badge">Placeholder study</span>
+              <span class="card-hint">Access dataslate</span>
+              <svg class="chevron-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none" opacity="0.6"/></svg>
+              <span class="card-caption">
+                <span class="name">Skullreaper Warband</span>
+                <span class="faction">Khorne</span>
+              </span>
+            </button>
+            <button type="button" class="card card--kh card--kh3 card--portrait" data-modal="kh3" aria-haspopup="dialog">
+              <span class="card-badge">Placeholder study</span>
+              <span class="card-hint">Access dataslate</span>
+              <svg class="chevron-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6l8 6-8 6" stroke="currentColor" stroke-width="2" fill="none" opacity="0.6"/></svg>
+              <span class="card-caption">
+                <span class="name">Khorne Lord on Juggernaut</span>
+                <span class="faction">Khorne</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <section class="showcase" id="showcase">
+    <div class="eagle-watermark" aria-hidden="true">
+      <svg class="eagle-mark eagle-mark--watermark" viewBox="0 0 140 100" focusable="false">
+        <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
+          <path d="M70 16 L76 33 L70 94 L64 33 Z" fill="currentColor"/>
+          <path d="M70 16 L54 6 L45 13 L54 19 L63 15 Z" fill="currentColor"/>
+          <path d="M70 16 L86 6 L95 13 L86 19 L77 15 Z" fill="currentColor"/>
+          <path d="M62 29 L18 12 L3 23 L34 31 L9 36 L38 44 L13 51 L44 55 L64 46 Z"/>
+          <path d="M78 29 L122 12 L137 23 L106 31 L131 36 L102 44 L127 51 L96 55 L76 46 Z"/>
+          <path d="M60 70 L46 94 M70 74 L70 98 M80 70 L94 94"/>
+        </g>
+      </svg>
+    </div>
+    <div class="container">
+      <div class="showcase-grid">
+        <div class="showcase-copy">
+          <p class="section-kicker">Centerpiece / Diorama</p>
+          <h2 class="section-title">When It's a Whole Scene, Not Just a Model</h2>
+          <p>Some commissions stop being "a miniature" somewhere around the third piece of resin terrain. Environment studies and full dioramas get their own scope: a rocky ledge, a lighting story, two forces that were never going to share a table peacefully.</p>
+          <p>This is where the shelf work becomes something closer to a display piece: sculpted basing, layered terrain, and enough contrast in the paint scheme that the story reads before anyone gets close enough to see brushwork.</p>
+          <div class="showcase-tag-row">
+            <span class="showcase-tag">Sculpted terrain</span>
+            <span class="showcase-tag">Multi-model scenes</span>
+            <span class="showcase-tag">Display-case builds</span>
+          </div>
+        </div>
+        <div class="showcase-frame">
+          <span class="img-tag img-tag--tl">Placeholder, diorama photo, not Dave's work</span>
+          <img src="assets/diorama_2.jpg" alt="Placeholder photo of a rubble-base diorama: a yellow-armored space marine with sword and shield facing off against a blue battle-walker, a bright weapon blast lighting the scene between them, standing in for the kind of environment build described here." width="2000" height="1175" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <section class="interlude" id="recon">
+    <div class="topo-mount topo-mount--interlude" aria-hidden="true"></div>
+    <span class="img-tag img-tag--br">Placeholder — cathedral interior</span>
+    <div class="container">
+      <p class="interlude-quote">Every campaign starts with a map. Every rite starts with the same <span>contour line.</span></p>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <span class="img-tag img-tag--tr">Placeholder — granite texture</span>
+    <div class="container about-grid">
+      <div class="about-figure" role="img" aria-label="Abstract placeholder graphic representing Dave's paint desk">
+        <div class="topo-mount topo-mount--about" aria-hidden="true"></div>
+      </div>
+      <div>
+        <p class="section-kicker">About</p>
+        <h2 class="section-title">The Guy Behind the Wash</h2>
+        <p>Before the paintbrush, Dave spent several years as a US Army officer, which means the shelf isn't just neat, it's inventoried. Basecoat, wash, highlight, done: a standard operating procedure that hasn't changed much since Cadia, except now the only casualties are chipped rims and the occasional dry-brush accident.</p>
+        <p>Off the bench he's more often on a rock face than a recliner. Route-finding and squad tactics turn out to share a lot of vocabulary: read the terrain, commit to a line, trust the anchor. It also explains the small-parts patience — nobody free-solos a Bloodletter's wing joints.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <!-- Pricing anchors are ballpark planning numbers invented for this mockup,
+       not figures Dave has reviewed or approved. Swap before this goes live. -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <p class="section-kicker">Requisition Manifest</p>
+      <h2 class="section-title">Commission Tiers</h2>
+      <p class="section-lede">Three standard tiers of sanctioned work. Ballpark planning numbers, not a binding quote until Dave's seen reference photos and a model count.</p>
+      <div class="pricing-grid">
+        <article class="tier-card tier-card--tabletop">
+          <p class="tier-kicker">Tier I</p>
+          <h3 class="tier-name">Tabletop Ready</h3>
+          <p class="tier-price"><span class="amount">$40&ndash;70</span><span class="unit">/ model</span></p>
+          <ul class="tier-features">
+            <li>Three-color scheme plus wash</li>
+            <li>Basic edge highlights</li>
+            <li>Standard basing</li>
+            <li>Reads clean at arm's length across the table</li>
+          </ul>
+        </article>
+        <article class="tier-card tier-card--display">
+          <p class="tier-kicker">Tier II</p>
+          <h3 class="tier-name">Display Quality</h3>
+          <p class="tier-price"><span class="amount">$90&ndash;160</span><span class="unit">/ model</span></p>
+          <ul class="tier-features">
+            <li>Layered blending and glazes</li>
+            <li>Freehand insignia or battle damage</li>
+            <li>Upgraded basing materials</li>
+            <li>Holds up to a close-up photo</li>
+          </ul>
+        </article>
+        <article class="tier-card tier-card--centerpiece">
+          <span class="img-tag img-tag--br">Placeholder — foundry sparks, not Dave's studio</span>
+          <span class="tier-spike" aria-hidden="true"></span>
+          <span class="tier-stamp" aria-hidden="true">
+            <svg class="eagle-mark eagle-mark--stamp" viewBox="0 0 140 100" focusable="false">
+              <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+                <path d="M70 16 L76 33 L70 94 L64 33 Z" fill="currentColor"/>
+                <path d="M70 16 L54 6 L45 13 L54 19 L63 15 Z" fill="currentColor"/>
+                <path d="M70 16 L86 6 L95 13 L86 19 L77 15 Z" fill="currentColor"/>
+                <path d="M62 29 L18 12 L3 23 L34 31 L9 36 L38 44 L13 51 L44 55 L64 46 Z"/>
+                <path d="M78 29 L122 12 L137 23 L106 31 L131 36 L102 44 L127 51 L96 55 L76 46 Z"/>
+              </g>
+            </svg>
+          </span>
+          <p class="tier-kicker">Tier III</p>
+          <h3 class="tier-name">Centerpiece / Diorama</h3>
+          <p class="tier-price"><span class="amount">Custom quote</span><span class="unit">starting ~$250+</span></p>
+          <ul class="tier-features">
+            <li>Multi-model narrative scenes</li>
+            <li>NMM, OSL, sculpted terrain</li>
+            <li>Optional display-case build</li>
+            <li>Scoped after a reference-photo review</li>
+          </ul>
+        </article>
+      </div>
+      <p class="pricing-note">Every quote is scoped to the actual model and reference photos, not a price list read off a shelf. Rush timelines and heavy conversion work run above these ranges.</p>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <section class="commission" id="commission">
+    <div class="container">
+      <p class="section-kicker"><span class="lens-glow" aria-hidden="true"></span>Commission</p>
+      <h2 class="section-title">Get Something Painted</h2>
+      <div class="commission-grid">
+        <div class="commission-panel">
+          <p>Have a squad, a warband, or one very important centerpiece model gathering dust in a box? Commission inquiries are open. The more detail up front, the faster the quote comes back.</p>
+          <a class="mailto-btn magnetic" href="mailto:commissions@nevergofulldave.com?subject=Commission%20Inquiry&body=Faction%2Farmy%3A%20%0AModel%20count%3A%20%0AReference%20images%20(links%20or%20attachments)%3A%20%0ATimeline%2Fdeadline%3A%20%0AAnything%20else%20worth%20knowing%3A%20%0A">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            <span>Email Dave</span>
+          </a>
+        </div>
+        <div class="intake-panel">
+          <p class="intake-kicker">Include in your message</p>
+          <ul class="intake-list">
+            <li>
+              <svg class="intake-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+              <div>
+                <strong>Army / faction</strong>
+                <span>Astra Militarum regiment, Chaos god, whatever's on the shelf.</span>
+              </div>
+            </li>
+            <li>
+              <svg class="intake-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              <div>
+                <strong>Model count</strong>
+                <span>A single centerpiece or a full squad, roughly how many models.</span>
+              </div>
+            </li>
+            <li>
+              <svg class="intake-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5.5-5.5L9 17"/></svg>
+              <div>
+                <strong>Reference images</strong>
+                <span>Box art, existing scheme photos, or a Pinterest board, whatever exists.</span>
+              </div>
+            </li>
+            <li>
+              <svg class="intake-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+              <div>
+                <strong>Timeline</strong>
+                <span>Tournament deadline, gift date, or just "whenever it's right."</span>
+              </div>
+            </li>
+          </ul>
+          <p class="intake-note">No online form yet, just a real inbox. Expect a reply within a few days with a ballpark quote and a rough queue date.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dispatches" id="dispatches">
+    <div class="container">
+      <p class="section-kicker">Dispatches</p>
+      <h2 class="section-title">Dispatches from the Hobby Desk</h2>
+      <p class="section-lede">Occasional notes from the paint desk. Click a card for the fuller writeup.</p>
+      <div class="post-grid">
+        <button type="button" class="post-card" data-modal="post1" aria-haspopup="dialog">
+          <span class="tag">Coming soon</span>
+          <h3>Getting Brass Right (Finally)</h3>
+          <span class="read-more">&gt; Access dataslate</span>
+        </button>
+        <button type="button" class="post-card" data-modal="post2" aria-haspopup="dialog">
+          <span class="tag">Coming soon</span>
+          <h3>Cleaning Krieg Green Off the Airbrush</h3>
+          <span class="read-more">&gt; Access dataslate</span>
+        </button>
+        <button type="button" class="post-card" data-modal="post3" aria-haspopup="dialog">
+          <span class="tag">Coming soon</span>
+          <h3>Why the Juggernaut Took Four Months</h3>
+          <span class="read-more">&gt; Access dataslate</span>
+        </button>
+        <button type="button" class="post-card" data-modal="post4" aria-haspopup="dialog">
+          <span class="tag">Coming soon</span>
+          <h3>Basing Material Rabbit Holes</h3>
+          <span class="read-more">&gt; Access dataslate</span>
+        </button>
+        <button type="button" class="post-card" data-modal="post5" aria-haspopup="dialog">
+          <span class="tag">Coming soon</span>
+          <h3>The Airbrush Compressor Finally Died</h3>
+          <span class="read-more">&gt; Access dataslate</span>
+        </button>
+      </div>
+      <div class="archive-cta">
+        <button type="button" class="archive-btn" disabled aria-describedby="archiveNote">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><path d="M10 13h4"/></svg>
+          <span>View Full Archive</span>
+        </button>
+        <p class="archive-note" id="archiveNote">No archive page yet, just these five dispatches. A real blog and RSS feed come later.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <a class="footer-social" href="#" aria-label="Instagram — @nevergofulldave (placeholder link)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="5"/>
+        <circle cx="12" cy="12" r="4"/>
+        <circle cx="17.2" cy="6.8" r="1"/>
+      </svg>
+    </a>
+    <p>&copy; 2026 Never Go Full Dave. All rights reserved.</p>
+    <p class="footer-credits">Image credits: foundry sparks photo by Aryan Patidar (CC BY 4.0). Cathedral interior photo by Adam Jones, Ph.D. (CC BY-SA 3.0). Granite texture and brass texture are CC0. Topographic map scan is public domain.</p>
+    <p class="footer-morse" aria-hidden="true">
+      <span class="morse-light is-steady" style="animation:none;"></span>
+      binaric chant: NGFD
+    </p>
+  </div>
+</footer>
+
+<!-- Shared modal: reused for both gallery-card and dispatch-card detail views -->
+<dialog id="detailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-content">
+    <button type="button" class="modal-close" id="modalCloseBtn" aria-label="Close dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    </button>
+    <p class="modal-kicker" id="modalKicker"></p>
+    <h3 class="modal-title" id="modalTitle"></h3>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var pointerFine = window.matchMedia("(pointer: fine)").matches;
+
+  document.addEventListener("visibilitychange", function () {
+    document.documentElement.classList.toggle("tab-hidden", document.hidden);
+  });
+
+  /* ---------------- Nav toggle ---------------- */
+  var navToggle = document.getElementById("navToggle");
+  var navMenu = document.getElementById("navMenu");
+  navToggle.addEventListener("click", function () {
+    var open = navMenu.classList.toggle("is-open");
+    navToggle.setAttribute("aria-expanded", String(open));
+  });
+  navMenu.querySelectorAll(".nav-link").forEach(function (link) {
+    link.addEventListener("click", function () {
+      navMenu.classList.remove("is-open");
+      navToggle.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  /* ---------------- Topographic contour motif ----------------
+     One shared ring set (hand-tuned wobbly concentric loops, not
+     random per render, so the shape is reproducible) mounted into
+     every .topo-mount. Hero draws immediately on load; every other
+     instance draws once via IntersectionObserver the first time it
+     scrolls into view, then stops observing. No per-frame JS cost —
+     the draw itself is a CSS transition on stroke-dashoffset. */
+  var TOPO_RINGS = [
+    "M149.1,130.0 C149.8,131.6 147.8,134.0 146.5,135.6 C145.2,137.1 143.1,138.3 141.4,139.3 C139.6,140.4 138.0,141.8 136.1,142.0 C134.2,142.2 131.9,140.7 130.0,140.5 C128.1,140.3 126.9,140.7 124.5,140.9 C122.1,141.1 117.4,142.7 115.5,141.9 C113.6,141.0 112.7,137.8 113.0,135.8 C113.2,133.8 116.5,131.7 117.1,130.0 C117.8,128.3 116.6,127.1 116.9,125.6 C117.2,124.0 117.6,122.1 118.7,120.8 C119.9,119.5 121.9,118.8 123.8,117.8 C125.7,116.7 127.8,114.4 130.0,114.2 C132.2,114.1 135.4,115.2 136.7,116.7 C138.1,118.2 137.2,121.8 138.1,123.3 C139.1,124.8 140.7,124.6 142.5,125.7 C144.4,126.9 148.5,128.4 149.1,130.0 Z",
+    "M170.9,135.1 C170.1,138.5 161.5,140.9 158.2,144.0 C154.9,147.0 154.7,151.9 151.2,153.5 C147.7,155.2 141.4,153.6 137.2,153.7 C132.9,153.8 130.0,153.5 125.6,153.9 C121.2,154.3 115.6,156.7 110.8,156.0 C106.1,155.4 99.5,153.1 97.2,149.9 C94.9,146.6 96.0,140.5 97.0,136.7 C98.1,132.8 103.1,130.3 103.6,126.7 C104.1,123.1 98.8,118.2 100.0,115.2 C101.2,112.1 107.3,111.3 110.8,108.7 C114.3,106.1 116.7,101.2 120.8,99.6 C125.0,97.9 131.6,97.3 135.8,98.8 C139.9,100.2 143.3,105.3 146.0,108.3 C148.7,111.3 149.0,114.3 151.9,116.8 C154.7,119.3 159.9,120.2 163.1,123.3 C166.2,126.3 171.7,131.6 170.9,135.1 Z",
+    "M186.5,144.3 C182.6,149.7 175.6,153.4 170.3,157.4 C165.0,161.4 160.8,167.2 154.8,168.6 C148.8,169.9 140.9,164.9 134.0,165.7 C127.2,166.6 120.9,173.0 113.6,173.6 C106.2,174.2 96.3,172.8 90.1,169.5 C83.8,166.1 76.7,159.3 76.1,153.3 C75.4,147.3 84.8,139.2 86.0,133.4 C87.2,127.5 83.2,123.6 83.3,118.2 C83.5,112.7 83.7,105.5 87.2,100.8 C90.7,96.2 98.3,94.1 104.4,90.2 C110.6,86.3 117.2,77.7 124.1,77.5 C130.9,77.3 139.6,85.0 145.5,89.0 C151.3,93.0 154.7,97.5 159.0,101.3 C163.4,105.1 165.8,108.0 171.6,112.0 C177.3,116.0 191.1,119.8 193.6,125.2 C196.0,130.5 190.4,139.0 186.5,144.3 Z",
+    "M205.9,160.1 C198.2,166.6 186.7,171.1 177.2,173.4 C167.6,175.7 157.3,170.2 148.7,173.9 C140.0,177.5 134.8,192.1 125.4,195.3 C116.1,198.6 102.6,196.4 92.7,193.3 C82.8,190.2 70.3,184.3 66.0,176.8 C61.8,169.2 68.5,156.3 67.1,148.0 C65.7,139.6 57.6,133.8 57.6,126.6 C57.5,119.4 63.6,112.6 66.7,104.9 C69.8,97.2 69.8,86.3 76.0,80.3 C82.2,74.4 94.3,72.7 104.1,69.2 C114.0,65.7 125.6,57.7 134.9,59.3 C144.2,61.0 152.5,73.4 159.9,79.2 C167.4,84.9 173.7,88.4 179.5,93.8 C185.3,99.2 187.5,104.7 194.8,111.5 C202.1,118.2 221.6,126.3 223.4,134.4 C225.3,142.5 213.6,153.6 205.9,160.1 Z",
+    "M216.0,178.2 C203.7,183.4 181.7,176.0 170.3,180.7 C158.9,185.4 158.0,200.1 147.5,206.5 C137.0,212.8 121.1,218.5 107.2,218.8 C93.4,219.2 74.2,216.1 64.5,208.5 C54.8,201.0 52.3,184.3 48.9,173.4 C45.6,162.5 47.0,153.2 44.4,143.2 C41.7,133.2 32.1,122.9 33.1,113.3 C34.1,103.6 44.3,95.2 50.4,85.3 C56.5,75.5 59.7,60.9 69.8,54.3 C79.8,47.7 97.1,47.3 110.7,45.8 C124.4,44.4 140.5,41.0 151.7,45.5 C162.8,50.0 169.2,65.2 177.8,72.7 C186.3,80.3 192.6,84.2 203.0,90.9 C213.5,97.6 233.4,103.2 240.3,113.0 C247.2,122.8 248.5,138.9 244.4,149.7 C240.4,160.6 228.4,173.1 216.0,178.2 Z",
+    "M207.5,189.2 C193.4,195.7 185.7,200.3 173.5,208.2 C161.4,216.1 150.9,229.8 134.6,236.6 C118.3,243.4 90.9,254.1 75.9,248.8 C60.9,243.5 53.7,218.0 44.9,204.9 C36.0,191.8 27.1,182.1 22.7,170.1 C18.4,158.2 21.3,146.1 19.0,133.2 C16.8,120.4 6.9,105.8 9.4,93.1 C11.9,80.3 23.3,67.3 34.1,56.8 C45.0,46.3 59.2,36.5 74.3,30.0 C89.5,23.5 109.4,15.1 125.1,17.7 C140.9,20.2 155.1,37.7 168.6,45.2 C182.1,52.7 194.4,55.5 206.3,62.8 C218.2,70.1 226.8,78.4 240.1,88.8 C253.4,99.2 283.1,112.1 286.0,125.5 C288.9,138.9 270.8,158.5 257.7,169.1 C244.6,179.7 221.5,182.6 207.5,189.2 Z"
+  ];
+
+  function topoMarkup() {
+    var strokes = ["var(--brass)", "var(--olive)", "var(--brass)", "var(--olive)", "var(--brass)", "var(--olive)"];
+    var paths = TOPO_RINGS.map(function (d, i) {
+      // Watermark-level opacity per developer feedback — the motif should
+      // read as a faint overlay, not something that competes with the
+      // diorama photo behind it. Went 0.85->0.35 originally, dropped to
+      // 0.22->0.095 (too faint per follow-up feedback: "overlay slightly
+      // brighter"), now settled at 0.32->0.14.
+      var opacity = (0.32 - i * 0.036).toFixed(3);
+      return '<path class="topo-path" d="' + d + '" stroke="' + strokes[i] + '" stroke-width="1.4" opacity="' + opacity + '"></path>';
+    }).join("");
+    var labels =
+      '<text class="topo-label" x="140" y="22" font-size="9">AUSPEX LOCK CONFIRMED</text>' +
+      '<text class="topo-label" x="2" y="292" font-size="9">RITE OF ASCENT LOGGED</text>';
+    return '<svg class="topo-svg" viewBox="-20 -20 320 320" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Topographic contour lines, a dual climbing-route and tactical map motif" focusable="false">' + paths + labels + '</svg>';
+  }
+
+  document.querySelectorAll(".topo-mount").forEach(function (mount) {
+    mount.innerHTML = topoMarkup();
+  });
+
+  function drawTopo(mountEl) {
+    var paths = Array.prototype.slice.call(mountEl.querySelectorAll(".topo-path"));
+    paths.forEach(function (p, i) {
+      var len;
+      try { len = p.getTotalLength(); } catch (err) { len = 800; }
+      p.style.strokeDasharray = len;
+      if (reduceMotion) {
+        p.style.strokeDashoffset = 0;
+        return;
+      }
+      p.style.strokeDashoffset = len;
+      p.style.transition = "stroke-dashoffset 1500ms ease-out " + (i * 110) + "ms";
+    });
+    if (!reduceMotion) {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          paths.forEach(function (p) { p.style.strokeDashoffset = 0; });
+        });
+      });
+    }
+  }
+
+  var heroTopoMount = document.querySelector(".topo-mount--hero");
+  if (heroTopoMount) drawTopo(heroTopoMount);
+
+  var scrollTopoMounts = Array.prototype.slice.call(document.querySelectorAll(".topo-mount"))
+    .filter(function (el) { return el !== heroTopoMount; });
+
+  if ("IntersectionObserver" in window) {
+    var topoObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          drawTopo(entry.target);
+          topoObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    scrollTopoMounts.forEach(function (el) { topoObserver.observe(el); });
+  } else {
+    scrollTopoMounts.forEach(function (el) { drawTopo(el); });
+  }
+
+  /* ---------------- Cog field (Adeptus-Mechanicus gear watermark) ----------------
+     Replaces the earlier radar sweep. Geometry (alternating outer/inner
+     radius vertices around a circle, with a punched-out center hole via
+     fill-rule evenodd) is computed once at load — not per frame — so
+     this is a one-time reflow, then two long, slow CSS animations. */
+  function cogPath(teeth, rOuter, rInner, holeR, cx, cy) {
+    var n = teeth * 2;
+    var pts = [];
+    for (var i = 0; i < n; i++) {
+      var a = (Math.PI * 2 * i) / n;
+      var r = i % 2 === 0 ? rOuter : rInner;
+      pts.push((cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1));
+    }
+    var outer = "M" + pts.join(" L") + " Z";
+    var hole =
+      "M" + (cx - holeR) + "," + cy +
+      " a" + holeR + "," + holeR + " 0 1,0 " + holeR * 2 + ",0" +
+      " a" + holeR + "," + holeR + " 0 1,0 " + (-holeR * 2) + ",0 Z";
+    return outer + " " + hole;
+  }
+
+  function cogMarkup(cls, teeth, rOuter, rInner, holeR) {
+    var c = 100;
+    var d = cogPath(teeth, rOuter, rInner, holeR, c, c);
+    return '<svg class="cog ' + cls + '" viewBox="0 0 200 200" role="img" aria-label="Cogitator gear, decorative" focusable="false">' +
+      '<path d="' + d + '" fill-rule="evenodd" fill="currentColor"></path></svg>';
+  }
+
+  var cogField = document.querySelector(".cog-field");
+  if (cogField) {
+    cogField.innerHTML =
+      cogMarkup("cog--a", 18, 92, 78, 34) +
+      cogMarkup("cog--b", 12, 90, 72, 30);
+  }
+
+  /* ---------------- Ash motes (hero only) ----------------
+     Cheap CSS-only drifting particles: 16 spans with randomized left
+     position, drift distance, duration and delay, then the keyframe
+     defined in CSS does the rest. No JS runs after this one-time setup. */
+  var ashField = document.querySelector(".ash-field");
+  if (ashField && !reduceMotion) {
+    var ASH_COUNT = 16;
+    var ashHtml = "";
+    for (var ai = 0; ai < ASH_COUNT; ai++) {
+      var left = (Math.random() * 100).toFixed(1);
+      var drift = (Math.random() * 60 - 30).toFixed(0);
+      var duration = (9 + Math.random() * 7).toFixed(1);
+      var delay = (Math.random() * 12).toFixed(1);
+      var scale = (0.6 + Math.random() * 0.8).toFixed(2);
+      ashHtml += '<span class="ash-mote" style="left:' + left + '%; --drift:' + drift + 'px; ' +
+        'animation-duration:' + duration + 's; animation-delay:-' + delay + 's; transform:scale(' + scale + ');"></span>';
+    }
+    ashField.innerHTML = ashHtml;
+  }
+
+  /* ---------------- Terminal boot-sequence + text scramble reveal ---------------- */
+  var GLYPHS = "!<>-_\\/[]{}—=+*^?#%$&";
+  var heroTitle = document.getElementById("heroTitle");
+  var finalText = heroTitle.getAttribute("data-text") || "";
+  var bootEl = document.getElementById("bootSequence");
+  var BOOT_LINES = [
+    "> COGITATOR SPOOLING…",
+    "> MACHINE-SPIRIT STABLE",
+    "> RUNE-MAP: ROUTE INSCRIBED",
+    "> AUSPEX LOCK CONFIRMED"
+  ];
+
+  function buildScrambleSpans(el, text) {
+    el.textContent = "";
+    var chars = [];
+    var accentFrom = text.length - 4; // last word ("DAVE") renders in brass
+    text.split("").forEach(function (ch, i) {
+      var span = document.createElement("span");
+      span.className = "char";
+      if (i >= accentFrom) span.classList.add("accent");
+      if (ch === " ") {
+        span.innerHTML = "&nbsp;";
+      } else {
+        span.textContent = ch;
+      }
+      el.appendChild(span);
+      chars.push({ el: span, final: ch });
+    });
+    return chars;
+  }
+
+  function runScramble(el, text, onComplete) {
+    var chars = buildScrambleSpans(el, text);
+    if (reduceMotion) {
+      chars.forEach(function (c) { c.el.textContent = c.final === " " ? " " : c.final; });
+      if (onComplete) onComplete();
+      return;
+    }
+    var start = null;
+    var perCharDelay = 45;
+    var scrambleWindow = 260;
+    var lastFlip = chars.map(function () { return 0; });
+
+    function frame(ts) {
+      if (start === null) start = ts;
+      var elapsed = ts - start;
+      var done = true;
+      chars.forEach(function (c, i) {
+        if (c.final === " ") return;
+        var revealAt = i * perCharDelay + scrambleWindow;
+        if (elapsed >= revealAt) {
+          c.el.textContent = c.final;
+        } else {
+          done = false;
+          if (elapsed - lastFlip[i] > 40) {
+            c.el.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+            lastFlip[i] = elapsed;
+          }
+        }
+      });
+      if (!done) {
+        requestAnimationFrame(frame);
+      } else if (onComplete) {
+        onComplete();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function runBootSequence(onDone) {
+    if (reduceMotion) { onDone(); return; }
+    bootEl.classList.remove("is-empty");
+    var i = 0;
+    var LINE_MS = 340;
+    function step() {
+      if (document.hidden) { setTimeout(step, LINE_MS); return; } // don't burn cycles backgrounded
+      if (i >= BOOT_LINES.length) {
+        bootEl.classList.add("is-empty");
+        bootEl.textContent = "";
+        onDone();
+        return;
+      }
+      bootEl.textContent = BOOT_LINES[i];
+      i++;
+      setTimeout(step, LINE_MS);
+    }
+    step();
+  }
+
+  var puritySeal = document.getElementById("puritySeal");
+  runBootSequence(function () {
+    runScramble(heroTitle, finalText, function () {
+      if (puritySeal) puritySeal.classList.add("is-stamped");
+    });
+  });
+
+  /* ---------------- Morse-code status light: blinks "NGFD" ----------------
+     Real morse timing (unit = 150ms). A setTimeout chain, not a rAF loop,
+     so the cost is a handful of timers, not a per-frame callback. */
+  var morseLight = document.getElementById("morseLight");
+  if (morseLight) {
+    if (reduceMotion) {
+      morseLight.classList.add("is-steady");
+    } else {
+      var UNIT = 150;
+      // [on(true/false), units]
+      var PATTERN = [
+        [true, 3], [false, 1], [true, 1],             // N: -.
+        [false, 3],
+        [true, 3], [false, 1], [true, 3], [false, 1], [true, 1], // G: --.
+        [false, 3],
+        [true, 1], [false, 1], [true, 1], [false, 1], [true, 3], [false, 1], [true, 1], // F: ..-.
+        [false, 3],
+        [true, 3], [false, 1], [true, 1], [false, 1], [true, 1], // D: -..
+        [false, 7]
+      ];
+      var idx = 0;
+      function morseStep() {
+        var entry = PATTERN[idx % PATTERN.length];
+        morseLight.classList.toggle("is-on", entry[0]);
+        idx++;
+        var delay = entry[1] * UNIT;
+        setTimeout(function () {
+          if (document.hidden) {
+            // wait out the background period without scheduling more work,
+            // resume the same step once visible again
+            document.addEventListener("visibilitychange", function resume() {
+              if (!document.hidden) {
+                document.removeEventListener("visibilitychange", resume);
+                morseStep();
+              }
+            });
+            return;
+          }
+          morseStep();
+        }, delay);
+      }
+      morseStep();
+    }
+  }
+
+  /* ---------------- Magnetic hover (nav links + primary CTA) ---------------- */
+  if (pointerFine && !reduceMotion) {
+    var magnets = Array.prototype.slice.call(document.querySelectorAll(".magnetic"));
+    var RADIUS = 90;
+    var STRENGTH = 0.35;
+
+    window.addEventListener("mousemove", function (e) {
+      magnets.forEach(function (el) {
+        var rect = el.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var dx = e.clientX - cx;
+        var dy = e.clientY - cy;
+        var dist = Math.hypot(dx, dy);
+        if (dist < RADIUS) {
+          var pull = (1 - dist / RADIUS) * STRENGTH;
+          el.style.transform = "translate(" + (dx * pull).toFixed(2) + "px," + (dy * pull).toFixed(2) + "px)";
+        } else {
+          el.style.transform = "translate(0,0)";
+        }
+      });
+    }, { passive: true });
+
+    magnets.forEach(function (el) {
+      el.style.transition = "transform 0.3s cubic-bezier(0.2,0.8,0.2,1)";
+      el.addEventListener("mouseleave", function () {
+        el.style.transform = "translate(0,0)";
+      });
+    });
+  }
+
+  /* ---------------- Interference burst on gallery-card hover/focus ---------------- */
+  if (!reduceMotion) {
+    var galleryCards = Array.prototype.slice.call(document.querySelectorAll(".gallery .card"));
+    galleryCards.forEach(function (card) {
+      var timer = null;
+      function trigger() {
+        card.classList.remove("is-active");
+        // eslint-disable-next-line no-unused-expressions
+        void card.offsetWidth; // force reflow so the animation can restart
+        card.classList.add("is-active");
+        clearTimeout(timer);
+        timer = setTimeout(function () { card.classList.remove("is-active"); }, 520);
+      }
+      card.addEventListener("pointerenter", trigger);
+      card.addEventListener("focus", trigger);
+    });
+  }
+
+  /* ---------------- Entry burst (canvas) ----------------
+     Performance budget: entry-burst capped at ~120 particles, runs once,
+     then the canvas is torn down. Cursor trail below is capped at ~40
+     live points. Both pause while the tab is backgrounded. */
+  var burstCanvas = document.getElementById("burst-canvas");
+  var burstCtx = burstCanvas.getContext("2d");
+  var BURST_COUNT = 120;
+
+  function sizeCanvas(canvas) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function runEntryBurst() {
+    sizeCanvas(burstCanvas);
+    if (reduceMotion) {
+      burstCanvas.style.display = "none";
+      return;
+    }
+    var cx = burstCanvas.width / 2;
+    var cy = burstCanvas.height / 2;
+    var colors = ["#c9a961", "#ff6b4a", "#8a9c4a", "#e9e6df", "#6fe0c9"];
+    var particles = [];
+    for (var i = 0; i < BURST_COUNT; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var speed = 6 + Math.random() * 10;
+      particles.push({
+        x: cx, y: cy,
+        angle: angle,
+        speed: speed,
+        initSpeed: speed,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        len: 4 + Math.random() * 10
+      });
+    }
+
+    var rafId;
+    function tick() {
+      burstCtx.clearRect(0, 0, burstCanvas.width, burstCanvas.height);
+      var alive = false;
+      particles.forEach(function (p) {
+        p.speed *= 0.90;
+        if (p.speed > 0.05) alive = true;
+        var nx = p.x + Math.cos(p.angle) * p.speed;
+        var ny = p.y + Math.sin(p.angle) * p.speed;
+        var alpha = Math.max(0, Math.min(1, p.speed / p.initSpeed));
+        burstCtx.strokeStyle = p.color;
+        burstCtx.globalAlpha = alpha;
+        burstCtx.lineWidth = 2;
+        burstCtx.beginPath();
+        burstCtx.moveTo(p.x, p.y);
+        burstCtx.lineTo(nx, ny);
+        burstCtx.stroke();
+        p.x = nx; p.y = ny;
+      });
+      burstCtx.globalAlpha = 1;
+      if (alive && !document.hidden) {
+        rafId = requestAnimationFrame(tick);
+      } else if (alive) {
+        pendingBurstFrame = tick;
+      } else {
+        burstCtx.clearRect(0, 0, burstCanvas.width, burstCanvas.height);
+        burstCanvas.style.display = "none";
+      }
+    }
+    var pendingBurstFrame = null;
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden && pendingBurstFrame) {
+        var fn = pendingBurstFrame;
+        pendingBurstFrame = null;
+        requestAnimationFrame(fn);
+      }
+    });
+    requestAnimationFrame(tick);
+  }
+  runEntryBurst();
+
+  /* ---------------- Cursor: forge-spark trail + auspex-lock reticle ----------------
+     Two pointer-driven effects sharing one rAF loop (no extra frame
+     cost for the reticle): a canvas trail of small tapering spark
+     shards (echoing the hero's foundry-sparks photo, with a slight
+     downward gravity drift) and a DOM reticle that eases toward the
+     cursor and tightens/recolors over anything clickable, like an
+     auspex getting a target lock. Performance budget: capped at ~40
+     live sparks, same ceiling as V1's plain-dot trail. Pointer-fine +
+     no-reduced-motion only; both no-op entirely on touch. */
+  if (pointerFine && !reduceMotion) {
+    var trailCanvas = document.getElementById("trail-canvas");
+    var trailCtx = trailCanvas.getContext("2d");
+    sizeCanvas(trailCanvas);
+    var TRAIL_MAX = 40;
+    var sparks = [];
+    var lastX = null, lastY = null;
+    var trailRafId = null;
+    var trailRunning = true;
+    var SPARK_COLORS = ["#c9a961", "#ff6b4a", "#e9a04f"];
+
+    var reticleEl = document.getElementById("auspexReticle");
+    var mouseX = 0, mouseY = 0;
+    var reticleX = 0, reticleY = 0;
+    var reticleSeen = false;
+
+    window.addEventListener("mousemove", function (e) {
+      mouseX = e.clientX; mouseY = e.clientY;
+      if (!reticleSeen) {
+        reticleSeen = true;
+        reticleX = mouseX; reticleY = mouseY;
+        if (reticleEl) reticleEl.classList.add("is-active");
+      }
+      var speed = 0;
+      if (lastX !== null) speed = Math.hypot(e.clientX - lastX, e.clientY - lastY);
+      var travelAngle = lastX !== null ? Math.atan2(e.clientY - lastY, e.clientX - lastX) : 0;
+      lastX = e.clientX; lastY = e.clientY;
+      if (speed < 1) return; // don't spawn sparks while basically stationary
+      var count = speed > 30 ? 2 : 1;
+      for (var s = 0; s < count; s++) {
+        var jitter = (Math.random() - 0.5) * 1.1;
+        var backAngle = travelAngle + Math.PI + jitter;
+        var vel = Math.min(6, 1.5 + speed * 0.12);
+        sparks.push({
+          x: e.clientX, y: e.clientY,
+          vx: Math.cos(backAngle) * vel,
+          vy: Math.sin(backAngle) * vel,
+          len: 3 + Math.random() * 6,
+          angle: backAngle,
+          color: SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)],
+          alpha: Math.min(1, speed / 30 + 0.3)
+        });
+        if (sparks.length > TRAIL_MAX) sparks.shift();
+      }
+    }, { passive: true });
+
+    // Auspex lock: tighten + recolor the reticle over anything clickable.
+    document.addEventListener("mouseover", function (e) {
+      if (!reticleEl) return;
+      var interactive = e.target.closest && e.target.closest("a, button, [data-modal]");
+      reticleEl.classList.toggle("is-locked", !!interactive);
+    }, { passive: true });
+
+    function drawTrail() {
+      trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+      for (var i = 0; i < sparks.length; i++) {
+        var p = sparks[i];
+        trailCtx.beginPath();
+        trailCtx.strokeStyle = p.color;
+        trailCtx.globalAlpha = Math.max(0, p.alpha);
+        trailCtx.lineWidth = 1.6;
+        trailCtx.lineCap = "round";
+        trailCtx.moveTo(p.x, p.y);
+        trailCtx.lineTo(p.x - Math.cos(p.angle) * p.len, p.y - Math.sin(p.angle) * p.len);
+        trailCtx.stroke();
+        p.x += p.vx; p.y += p.vy;
+        p.vy += 0.12; // gentle gravity, sparks drift down as they fade
+        p.vx *= 0.94; p.vy *= 0.98;
+        p.alpha *= 0.9;
+      }
+      trailCtx.globalAlpha = 1;
+      sparks = sparks.filter(function (p) { return p.alpha > 0.03; });
+
+      if (reticleEl && reticleSeen) {
+        reticleX += (mouseX - reticleX) * 0.22;
+        reticleY += (mouseY - reticleY) * 0.22;
+        reticleEl.style.transform = "translate3d(" + reticleX.toFixed(1) + "px," + reticleY.toFixed(1) + "px,0)";
+      }
+
+      if (trailRunning) trailRafId = requestAnimationFrame(drawTrail);
+    }
+    requestAnimationFrame(drawTrail);
+
+    document.addEventListener("visibilitychange", function () {
+      trailRunning = !document.hidden;
+      if (trailRunning) {
+        requestAnimationFrame(drawTrail);
+      } else if (trailRafId) {
+        cancelAnimationFrame(trailRafId);
+      }
+    });
+
+    window.addEventListener("resize", function () { sizeCanvas(trailCanvas); }, { passive: true });
+  }
+
+  window.addEventListener("resize", function () {
+    if (burstCanvas.style.display !== "none") sizeCanvas(burstCanvas);
+  }, { passive: true });
+
+  /* ---------------- Shared modal: gallery "process notes" + dispatch excerpts ----------------
+     Native <dialog> + showModal(): the browser traps focus and closes on
+     Escape for us; we add backdrop-click close, explicit focus return to
+     the trigger, and a manual Tab-cycle safety net on top. */
+  var DETAIL_DATA = {
+    am1: {
+      kicker: "Astra Militarum · Placeholder study",
+      title: "Cadian Command Squad",
+      body: [
+        "Third repaint of this squad's command sergeant. Recipe holding: Krieg khaki base, two thin agrax washes, edge highlight in bleached bone applied with more patience than talent.",
+        "Filed under “good enough,” which around here counts as high praise."
+      ]
+    },
+    am2: {
+      kicker: "Astra Militarum · Placeholder study",
+      title: "Death Korps Trench Line",
+      body: [
+        "Mud is sixty percent technique, forty percent commitment to not overthinking it. Stippled three greens before landing on something that reads as “lived-in” instead of “accident.”",
+        "Basing material held up better than the trench itself would have."
+      ]
+    },
+    am3: {
+      kicker: "Astra Militarum · Placeholder study",
+      title: "Leman Russ Weathering Study",
+      body: [
+        "Chipping medium experiment number four. Previous three attempts looked like the tank lost a fight with a cheese grater.",
+        "This one finally looks like it lost a fight with an actual war."
+      ]
+    },
+    kh1: {
+      kicker: "Khorne · Placeholder study",
+      title: "Bloodletter Vanguard",
+      body: [
+        "Khorne red is a discipline problem disguised as a paint scheme. Three glazes to get the gradient right, one to almost ruin it, and a fourth to fix my own mistake.",
+        "Brass fittings kept honest with a single controlled NMM pass, not the full six-stage version. Some battles aren't worth picking."
+      ]
+    },
+    kh2: {
+      kicker: "Khorne · Placeholder study",
+      title: "Skullreaper Warband",
+      body: [
+        "Warband cohesion check: do the bases match? Barely. Does the red-to-black transition read from three feet away? Also barely.",
+        "Ship it."
+      ]
+    },
+    kh3: {
+      kicker: "Khorne · Placeholder study",
+      title: "Khorne Lord on Juggernaut",
+      body: [
+        "Centerpiece rule applies: spend twice the hours anyone will notice on the parts nobody photographs closely. NMM gold took longer than the rest of the model combined.",
+        "Worth it. Ask me again in six months when I've forgotten how long it took."
+      ]
+    },
+    post1: {
+      kicker: "Dispatch · Technique",
+      title: "Getting Brass Right (Finally)",
+      body: [
+        "Non-metallic metal is one of those techniques everyone name-drops and almost nobody enjoys doing. Four highlights, one shadow glaze, and a specular hit that has to land in exactly the wrong place to look right.",
+        "Took three commissions and one deeply regrettable Khorne icon to land a recipe that survives a table read from three feet back. Writing it down here mostly so future-me stops relearning it from scratch every six months.",
+        "Recipe, for the record: base in a flat mid-bronze, block shadows hard, glaze twice, then one thin edge highlight applied with more confidence than the model deserves."
+      ]
+    },
+    post2: {
+      kicker: "Dispatch · Maintenance",
+      title: "Cleaning Krieg Green Off the Airbrush",
+      body: [
+        "Field maintenance discipline transfers better to hobby gear than anyone warns you. Strip, clean, inspect, reassemble — skip a step and you find out mid-session, which is the worst possible time to find out.",
+        "Krieg green apparently has opinions about needle caps. Forty minutes with a cleaning pot and a toothbrush later, the airbrush breathes again.",
+        "Lesson, restated for the hundredth time: clean it before you're annoyed at it, not after."
+      ]
+    },
+    post3: {
+      kicker: "Dispatch · Centerpiece",
+      title: "Why the Juggernaut Took Four Months",
+      body: [
+        "Centerpiece models operate on their own timeline and there's no negotiating with them. This one had four false starts, a stripped rider, and one afternoon spent staring at NMM gold instead of touching the model at all.",
+        "Somewhere around month three it stopped being about the deadline and started being about the route: plan the highlights the way you'd plan pitches on a wall, one committed move at a time, don't rush the crux.",
+        "Finished now. Whether it was worth four months is a question for someone who has to look at it every day. That's me. Yes."
+      ]
+    },
+    post4: {
+      kicker: "Dispatch · Basing",
+      title: "Basing Material Rabbit Holes",
+      body: [
+        "Static grass versus flock is a bigger argument than it has any right to be. Swapped over once the old bag of static grass finally ran out, mostly to see if the flock held texture better under a wash.",
+        "First impression: flock reads coarser at arm's length, grass reads more uniform but clumps if the glue goes down uneven. Neither one is obviously right yet.",
+        "Verdict pending. Running both across the next few bases before picking a side."
+      ]
+    },
+    post5: {
+      kicker: "Dispatch · Gear",
+      title: "The Airbrush Compressor Finally Died",
+      body: [
+        "Outlived three different desks and one move across state lines, so it's owed some respect on the way out. No dramatic failure, just a slow drop in pressure until it stopped being worth arguing with.",
+        "Replacement works fine. Also noticeably louder, which nobody warns you about when a compressor listing just says “quiet operation.”",
+        "Old one isn't going in the bin. Getting it stripped for parts first, the fittings alone are worth keeping around."
+      ]
+    }
+  };
+
+  var dialogEl = document.getElementById("detailModal");
+  var modalKicker = document.getElementById("modalKicker");
+  var modalTitle = document.getElementById("modalTitle");
+  var modalBody = document.getElementById("modalBody");
+  var modalCloseBtn = document.getElementById("modalCloseBtn");
+  var lastTrigger = null;
+
+  function openModal(key, triggerEl) {
+    var data = DETAIL_DATA[key];
+    if (!data) return;
+    modalKicker.textContent = data.kicker;
+    modalTitle.textContent = data.title;
+    modalBody.innerHTML = data.body.map(function (p) { return "<p>" + p + "</p>"; }).join("");
+    lastTrigger = triggerEl;
+    if (typeof dialogEl.showModal === "function") {
+      dialogEl.showModal();
+    } else {
+      // Very old browser fallback: still show it, just without native trapping.
+      dialogEl.setAttribute("open", "");
+    }
+    modalCloseBtn.focus();
+  }
+
+  function closeModal() {
+    if (typeof dialogEl.close === "function" && dialogEl.open) {
+      dialogEl.close();
+    } else {
+      dialogEl.removeAttribute("open");
+      if (lastTrigger) lastTrigger.focus();
+    }
+  }
+
+  document.querySelectorAll("[data-modal]").forEach(function (trigger) {
+    trigger.addEventListener("click", function () {
+      openModal(trigger.getAttribute("data-modal"), trigger);
+    });
+  });
+
+  modalCloseBtn.addEventListener("click", closeModal);
+
+  // Backdrop click: dialog fills the viewport when open, modal-content is
+  // a smaller centered child, so a click landing on the dialog itself
+  // (not bubbled from modal-content) means the user clicked the backdrop.
+  dialogEl.addEventListener("click", function (e) {
+    if (e.target === dialogEl) closeModal();
+  });
+
+  // Native <dialog> closes on Escape and fires "close" either way (click,
+  // Escape, or programmatic) — return focus to the trigger from one place.
+  dialogEl.addEventListener("close", function () {
+    if (lastTrigger) lastTrigger.focus();
+  });
+
+  // Manual Tab-cycle safety net on top of the browser's native trap.
+  dialogEl.addEventListener("keydown", function (e) {
+    if (e.key !== "Tab") return;
+    var focusables = dialogEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+    var first = focusables[0];
+    var last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
