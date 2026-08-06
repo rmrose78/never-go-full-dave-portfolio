@@ -74,9 +74,9 @@ export function useScrambleText(
     accentWord = 'DAVE',
     glyphs = DEFAULT_GLYPHS,
     bootLines = DEFAULT_BOOT_LINES,
-    bootLineMs = 150,
-    charDelayMs = 45,
-    scrambleWindowMs = 260,
+    bootLineMs = 280,
+    charDelayMs = 55,
+    scrambleWindowMs = 600,
     flipIntervalMs = 40,
     enabled = true,
     onComplete,
@@ -85,10 +85,12 @@ export function useScrambleText(
   const shouldSkipAnimation = !enabled || checkReducedMotion()
 
   const [chars, setChars] = useState<ScrambleChar[]>(() =>
-    shouldSkipAnimation ? buildInitialChars(text, accentWord, true, glyphs) : []
+    buildInitialChars(text, accentWord, shouldSkipAnimation, glyphs)
   )
   const [isComplete, setIsComplete] = useState(shouldSkipAnimation)
-  const [currentBootLine, setCurrentBootLine] = useState('')
+  const [currentBootLine, setCurrentBootLine] = useState(
+    !shouldSkipAnimation && bootLines.length > 0 ? bootLines[0] : ''
+  )
   const [isBooting, setIsBooting] = useState(!shouldSkipAnimation)
 
   const onCompleteRef = useRef(onComplete)
@@ -105,8 +107,9 @@ export function useScrambleText(
     let isSubscribed = true
     let bootIndex = 0
     let scrambleTimer: number | null = null
+    let pulseTimer: ReturnType<typeof setInterval> | null = null
 
-    // Step 1: Run terminal boot lines
+    // Step 1: Terminal boot lines cycling
     const runBoot = () => {
       if (!isSubscribed) return
       if (bootIndex >= bootLines.length) {
@@ -120,15 +123,27 @@ export function useScrambleText(
       setTimeout(runBoot, bootLineMs)
     }
 
-    // Step 2: Run per-character matrix scramble reveal animation
+    // Step 2: Sequential character reveal locking left-to-right
     const startScramble = () => {
       if (!isSubscribed) return
 
       const activeChars = buildInitialChars(text, accentWord, false, glyphs)
       setChars(activeChars)
 
+      pulseTimer = setInterval(() => {
+        if (!isSubscribed) return
+        setChars((prevChars) =>
+          prevChars.map((c) => {
+            if (c.isRevealed || c.final === ' ') return c
+            return {
+              ...c,
+              current: getRandomGlyph(glyphs),
+            }
+          })
+        )
+      }, flipIntervalMs)
+
       let startTime: number | null = null
-      const lastFlipTimes = activeChars.map(() => 0)
 
       const frame = (time: number) => {
         if (!isSubscribed) return
@@ -150,14 +165,6 @@ export function useScrambleText(
               }
             } else {
               allDone = false
-              if (elapsed - lastFlipTimes[index] >= flipIntervalMs) {
-                lastFlipTimes[index] = elapsed
-                return {
-                  ...charObj,
-                  current: getRandomGlyph(glyphs),
-                  isRevealed: false,
-                }
-              }
               return charObj
             }
           })
@@ -166,6 +173,7 @@ export function useScrambleText(
         if (!allDone) {
           scrambleTimer = requestAnimationFrame(frame)
         } else {
+          if (pulseTimer) clearInterval(pulseTimer)
           setChars(buildInitialChars(text, accentWord, true, glyphs))
           setIsComplete(true)
           if (onCompleteRef.current) onCompleteRef.current()
@@ -179,6 +187,7 @@ export function useScrambleText(
 
     return () => {
       isSubscribed = false
+      if (pulseTimer) clearInterval(pulseTimer)
       if (scrambleTimer) cancelAnimationFrame(scrambleTimer)
     }
   }, [text, accentWord, glyphs, bootLines, bootLineMs, charDelayMs, scrambleWindowMs, flipIntervalMs, shouldSkipAnimation])

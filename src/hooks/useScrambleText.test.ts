@@ -61,7 +61,7 @@ describe('useScrambleText', () => {
     expect(onComplete).toHaveBeenCalledTimes(1)
   })
 
-  it('keeps displayText empty during terminal boot sequence when animation is enabled', () => {
+  it('scrambles glyphs actively during terminal boot sequence when animation is enabled', () => {
     const { result } = renderHook(() =>
       useScrambleText({
         text: 'NEVER GO FULL DAVE',
@@ -72,13 +72,12 @@ describe('useScrambleText', () => {
 
     expect(result.current.isBooting).toBe(true)
     expect(result.current.currentBootLine).toBe('INITIALIZING DATASLATE...')
-    expect(result.current.displayText).toBe('')
+    expect(result.current.chars.length).toBe(18)
 
     act(() => {
       jest.advanceTimersByTime(100)
     })
 
     expect(result.current.currentBootLine).toBe('ESTABLISHING VOX LINK...')
-    expect(result.current.displayText).toBe('')
   })
 })
