@@ -5,11 +5,11 @@ import App from './App'
 expect.extend(toHaveNoViolations)
 
 describe('App', () => {
-  it('renders the heading and brand emblem', () => {
+  it('renders primary header navigation and brand emblem', () => {
     render(<App />)
 
     expect(
-      screen.getByRole('heading', { level: 1, name: /never go full dave/i })
+      screen.getByRole('navigation', { name: /primary navigation/i })
     ).toBeInTheDocument()
   })
 
