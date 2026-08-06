@@ -34,25 +34,28 @@ export const Hero: React.FC<HeroProps> = ({
           <StudioEmblem variant="hero" size={84} ariaLabel="Never Go Full Dave Studio Emblem" />
         </div>
 
-        {/* Mechanicus Terminal Boot Log Sequence */}
-        <p
-          className={`${styles.bootSequence} ${!isBooting || !currentBootLine ? styles.isEmpty : ''}`}
-          id="bootSequence"
-          aria-hidden="true"
-        >
-          {currentBootLine}
-        </p>
+        {/* Shared Title Slot Container (Fixed Height & Vertical Centering) */}
+        <div className={styles.titleSlotWrap}>
+          {/* Mechanicus Terminal Boot Log Sequence */}
+          <p
+            className={`${styles.bootSequence} ${!isBooting || !currentBootLine ? styles.isEmpty : ''}`}
+            id="bootSequence"
+            aria-hidden="true"
+          >
+            {currentBootLine}
+          </p>
 
-        {/* Hero Title with 1-to-1 Mockdraft Scramble Reveal */}
-        <h1
-          ref={targetRef}
-          className={styles.heroTitle}
-          id="heroTitle"
-          data-testid="hero-title"
-          aria-label={title}
-        >
-          <span className="visually-hidden">{title}</span>
-        </h1>
+          {/* Hero Title with 1-to-1 Mockdraft Scramble Reveal */}
+          <h1
+            ref={targetRef}
+            className={`${styles.heroTitle} ${isBooting ? styles.isBootingTitle : ''}`}
+            id="heroTitle"
+            data-testid="hero-title"
+            aria-label={title}
+          >
+            <span className="visually-hidden">{title}</span>
+          </h1>
+        </div>
 
         {/* Warning Badge & Tagline */}
         <p className={styles.heroWarning}>{warningText}</p>
