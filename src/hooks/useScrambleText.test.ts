@@ -1,9 +1,19 @@
-import { renderHook } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { useScrambleText } from './useScrambleText'
 
 describe('useScrambleText', () => {
   beforeEach(() => {
     jest.useFakeTimers()
+    window.matchMedia = jest.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }))
   })
 
   afterEach(() => {
@@ -49,5 +59,26 @@ describe('useScrambleText', () => {
     expect(result.current.displayText).toBe('NEVER GO FULL DAVE')
     expect(result.current.isComplete).toBe(true)
     expect(onComplete).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps displayText empty during terminal boot sequence when animation is enabled', () => {
+    const { result } = renderHook(() =>
+      useScrambleText({
+        text: 'NEVER GO FULL DAVE',
+        enabled: true,
+        bootLineMs: 100,
+      })
+    )
+
+    expect(result.current.isBooting).toBe(true)
+    expect(result.current.currentBootLine).toBe('INITIALIZING DATASLATE...')
+    expect(result.current.displayText).toBe('')
+
+    act(() => {
+      jest.advanceTimersByTime(100)
+    })
+
+    expect(result.current.currentBootLine).toBe('ESTABLISHING VOX LINK...')
+    expect(result.current.displayText).toBe('')
   })
 })

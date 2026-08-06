@@ -53,7 +53,7 @@ export function useScrambleText(
 
   const shouldSkipAnimation = !enabled || checkReducedMotion()
 
-  const [displayText, setDisplayText] = useState(text)
+  const [displayText, setDisplayText] = useState(shouldSkipAnimation ? text : '')
   const [isComplete, setIsComplete] = useState(shouldSkipAnimation)
   const [currentBootLine, setCurrentBootLine] = useState('')
   const [isBooting, setIsBooting] = useState(!shouldSkipAnimation)
