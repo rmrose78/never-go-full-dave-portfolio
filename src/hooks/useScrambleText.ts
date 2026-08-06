@@ -1,15 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 
-export interface ScrambleChar {
-  final: string
-  current: string
-  isRevealed: boolean
-  isAccent: boolean
-}
-
 export interface UseScrambleTextOptions {
   text: string
   accentWord?: string
+  accentClass?: string
   glyphs?: string
   bootLines?: string[]
   bootLineMs?: number
@@ -21,8 +15,7 @@ export interface UseScrambleTextOptions {
 }
 
 export interface UseScrambleTextReturn {
-  chars: ScrambleChar[]
-  displayText: string
+  targetRef: React.RefObject<HTMLHeadingElement | null>
   isComplete: boolean
   currentBootLine: string
   isBooting: boolean
@@ -44,31 +37,26 @@ function checkReducedMotion(): boolean {
   )
 }
 
-function getRandomGlyph(glyphs: string): string {
-  return glyphs[Math.floor(Math.random() * glyphs.length)]
-}
-
-function buildFinalChars(text: string, accentWord: string): ScrambleChar[] {
-  const accentIndex = accentWord ? text.indexOf(accentWord) : -1
-  const accentLength = accentWord ? accentWord.length : 0
-
-  return text.split('').map((char, index) => {
-    const isAccent = accentIndex !== -1 && index >= accentIndex && index < accentIndex + accentLength
-    return {
-      final: char,
-      current: char,
-      isRevealed: true,
-      isAccent,
-    }
-  })
+function renderFormattedTitle(targetEl: HTMLElement, text: string, accentWord: string, accentClass: string) {
+  if (accentWord && text.includes(accentWord)) {
+    const parts = text.split(accentWord)
+    targetEl.innerHTML = ''
+    const beforeNode = document.createTextNode(parts[0])
+    const accentSpan = document.createElement('span')
+    if (accentClass) accentSpan.className = accentClass
+    accentSpan.textContent = accentWord
+    const afterNode = document.createTextNode(parts.slice(1).join(accentWord))
+    targetEl.appendChild(beforeNode)
+    targetEl.appendChild(accentSpan)
+    targetEl.appendChild(afterNode)
+  } else {
+    targetEl.textContent = text
+  }
 }
 
 /**
  * Custom hook for Mechanicus terminal boot sequence and matrix hacker text scramble reveal.
- * Exactly mirrors mockdraft_dark.html algorithm:
- * 1. Boot sequence runs (340ms per line). Title is empty.
- * 2. Scramble animation runs (scrambleWindow 260ms + charDelay 45ms per character, 40ms flip interval).
- * 3. Final text reveals sequentially from left to right, triggering completion and purity seal.
+ * 1-to-1 match with mockdraft_dark.html algorithm using direct 60fps DOM animation.
  */
 export function useScrambleText(
   options: UseScrambleTextOptions
@@ -76,6 +64,7 @@ export function useScrambleText(
   const {
     text,
     accentWord = 'DAVE',
+    accentClass = '',
     glyphs = DEFAULT_GLYPHS,
     bootLines = DEFAULT_BOOT_LINES,
     bootLineMs = 340,
@@ -86,15 +75,11 @@ export function useScrambleText(
     onComplete,
   } = options
 
+  const targetRef = useRef<HTMLHeadingElement | null>(null)
   const shouldSkipAnimation = !enabled || checkReducedMotion()
 
-  const [chars, setChars] = useState<ScrambleChar[]>(() =>
-    shouldSkipAnimation ? buildFinalChars(text, accentWord) : []
-  )
   const [isComplete, setIsComplete] = useState(shouldSkipAnimation)
-  const [currentBootLine, setCurrentBootLine] = useState(
-    !shouldSkipAnimation && bootLines.length > 0 ? bootLines[0] : ''
-  )
+  const [currentBootLine, setCurrentBootLine] = useState('')
   const [isBooting, setIsBooting] = useState(!shouldSkipAnimation)
 
   const onCompleteRef = useRef(onComplete)
@@ -103,7 +88,11 @@ export function useScrambleText(
   }, [onComplete])
 
   useEffect(() => {
+    const targetEl = targetRef.current
     if (shouldSkipAnimation) {
+      if (targetEl) {
+        renderFormattedTitle(targetEl, text, accentWord, accentClass)
+      }
       if (onCompleteRef.current) onCompleteRef.current()
       return
     }
@@ -113,7 +102,9 @@ export function useScrambleText(
     let bootTimer: ReturnType<typeof setTimeout> | null = null
     let animId: number | null = null
 
-    // Phase 1: Terminal Boot Sequence
+    // Step 1: Terminal Boot Sequence (340ms per line)
+    if (targetEl) targetEl.innerHTML = ''
+
     const runBoot = () => {
       if (!isSubscribed) return
       if (bootIndex >= bootLines.length) {
@@ -127,55 +118,49 @@ export function useScrambleText(
       bootTimer = setTimeout(runBoot, bootLineMs)
     }
 
-    // Phase 2: Hacker Matrix Scramble Reveal Animation
+    // Step 2: 1-to-1 Matrix Hacker Scramble Animation Loop
     const startScramble = () => {
-      if (!isSubscribed) return
+      if (!isSubscribed || !targetEl) return
 
-      const accentIndex = accentWord ? text.indexOf(accentWord) : -1
-      const accentLength = accentWord ? accentWord.length : 0
-
-      const charsState: ScrambleChar[] = text.split('').map((char, index) => {
-        const isAccent = accentIndex !== -1 && index >= accentIndex && index < accentIndex + accentLength
-        return {
-          final: char,
-          current: char === ' ' ? ' ' : getRandomGlyph(glyphs),
-          isRevealed: false,
-          isAccent,
+      targetEl.innerHTML = ''
+      const chars = text.split('').map((c) => {
+        const s = document.createElement('span')
+        if (c === ' ') {
+          s.textContent = ' '
+        } else {
+          s.textContent = glyphs[Math.floor(Math.random() * glyphs.length)]
         }
+        targetEl.appendChild(s)
+        return { el: s, final: c }
       })
 
-      setChars([...charsState])
-
       let start: number | null = null
-      const lastFlipTimes = charsState.map(() => 0)
+      const lastFlip = chars.map(() => 0)
 
       const frame = (ts: number) => {
         if (!isSubscribed) return
         if (start === null) start = ts
         const elapsed = ts - start
-        let allDone = true
+        let done = true
 
-        charsState.forEach((c, i) => {
+        chars.forEach((c, i) => {
           if (c.final === ' ') return
           const revealAt = i * charDelayMs + scrambleWindowMs
           if (elapsed >= revealAt) {
-            c.current = c.final
-            c.isRevealed = true
+            c.el.textContent = c.final
           } else {
-            allDone = false
-            if (elapsed - lastFlipTimes[i] >= flipIntervalMs) {
-              c.current = getRandomGlyph(glyphs)
-              lastFlipTimes[i] = elapsed
+            done = false
+            if (elapsed - lastFlip[i] >= flipIntervalMs) {
+              c.el.textContent = glyphs[Math.floor(Math.random() * glyphs.length)]
+              lastFlip[i] = elapsed
             }
           }
         })
 
-        setChars([...charsState])
-
-        if (!allDone) {
+        if (!done) {
           animId = requestAnimationFrame(frame)
         } else {
-          setChars(buildFinalChars(text, accentWord))
+          renderFormattedTitle(targetEl, text, accentWord, accentClass)
           setIsComplete(true)
           if (onCompleteRef.current) onCompleteRef.current()
         }
@@ -191,13 +176,10 @@ export function useScrambleText(
       if (bootTimer) clearTimeout(bootTimer)
       if (animId) cancelAnimationFrame(animId)
     }
-  }, [text, accentWord, glyphs, bootLines, bootLineMs, charDelayMs, scrambleWindowMs, flipIntervalMs, shouldSkipAnimation])
-
-  const displayText = chars.map((c) => c.current).join('')
+  }, [text, accentWord, accentClass, glyphs, bootLines, bootLineMs, charDelayMs, scrambleWindowMs, flipIntervalMs, shouldSkipAnimation])
 
   return {
-    chars,
-    displayText,
+    targetRef,
     isComplete,
     currentBootLine,
     isBooting,

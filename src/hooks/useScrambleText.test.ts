@@ -30,7 +30,6 @@ describe('useScrambleText', () => {
       })
     )
 
-    expect(result.current.displayText).toBe('NEVER GO FULL DAVE')
     expect(result.current.isComplete).toBe(true)
     expect(result.current.isBooting).toBe(false)
     expect(onComplete).toHaveBeenCalledTimes(1)
@@ -56,12 +55,11 @@ describe('useScrambleText', () => {
       })
     )
 
-    expect(result.current.displayText).toBe('NEVER GO FULL DAVE')
     expect(result.current.isComplete).toBe(true)
     expect(onComplete).toHaveBeenCalledTimes(1)
   })
 
-  it('runs terminal boot sequence while title is empty, then triggers scramble phase', () => {
+  it('runs terminal boot sequence, then triggers scramble phase', () => {
     const { result } = renderHook(() =>
       useScrambleText({
         text: 'NEVER GO FULL DAVE',
@@ -72,13 +70,11 @@ describe('useScrambleText', () => {
 
     expect(result.current.isBooting).toBe(true)
     expect(result.current.currentBootLine).toBe('INITIALIZING DATASLATE...')
-    expect(result.current.chars.length).toBe(0)
 
     act(() => {
       jest.advanceTimersByTime(100)
     })
 
     expect(result.current.currentBootLine).toBe('ESTABLISHING VOX LINK...')
-    expect(result.current.chars.length).toBe(0)
   })
 })

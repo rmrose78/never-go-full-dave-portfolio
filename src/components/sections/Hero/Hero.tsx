@@ -20,8 +20,9 @@ export const Hero: React.FC<HeroProps> = ({
   ctaHref = '#gallery',
   enableScramble = true,
 }) => {
-  const { chars, isComplete, currentBootLine, isBooting } = useScrambleText({
+  const { targetRef, isComplete, currentBootLine, isBooting } = useScrambleText({
     text: title,
+    accentClass: styles.titleAccent,
     enabled: enableScramble,
   })
 
@@ -42,27 +43,15 @@ export const Hero: React.FC<HeroProps> = ({
           {currentBootLine}
         </p>
 
-        {/* Hero Title with Scramble Reveal */}
+        {/* Hero Title with 1-to-1 Mockdraft Scramble Reveal */}
         <h1
+          ref={targetRef}
           className={styles.heroTitle}
           id="heroTitle"
           data-testid="hero-title"
           aria-label={title}
         >
-          {chars.map((charObj, index) => {
-            if (charObj.final === ' ') {
-              return <React.Fragment key={index}> </React.Fragment>
-            }
-            const isAccentStyle = charObj.isAccent && charObj.isRevealed
-            return (
-              <span
-                key={index}
-                className={isAccentStyle ? styles.titleAccent : undefined}
-              >
-                {charObj.current}
-              </span>
-            )
-          })}
+          <span className="visually-hidden">{title}</span>
         </h1>
 
         {/* Warning Badge & Tagline */}
