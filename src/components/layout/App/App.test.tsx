@@ -5,11 +5,11 @@ import { App } from './App'
 expect.extend(toHaveNoViolations)
 
 describe('App Layout Scaffold', () => {
-  it('renders title heading and studio emblem correctly', () => {
+  it('renders primary header navigation and studio emblem correctly', () => {
     render(<App />)
 
     expect(
-      screen.getByRole('heading', { level: 1, name: /never go full dave/i })
+      screen.getByRole('navigation', { name: /primary navigation/i })
     ).toBeInTheDocument()
     expect(screen.getByTestId('studio-emblem')).toBeInTheDocument()
     expect(screen.getByTestId('app-shell')).toBeInTheDocument()
