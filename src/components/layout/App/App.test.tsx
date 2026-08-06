@@ -5,13 +5,14 @@ import { App } from './App'
 expect.extend(toHaveNoViolations)
 
 describe('App Layout Scaffold', () => {
-  it('renders primary header navigation, main container, and site footer', () => {
+  it('renders primary header navigation, main container, site footer, and audio widget', () => {
     render(<App />)
 
     expect(
       screen.getByRole('navigation', { name: /primary navigation/i })
     ).toBeInTheDocument()
     expect(screen.getByRole('contentinfo', { name: /site footer/i })).toBeInTheDocument()
+    expect(screen.getByTestId('industrial-audio-widget')).toBeInTheDocument()
     expect(screen.getByTestId('app-shell')).toBeInTheDocument()
   })
 
