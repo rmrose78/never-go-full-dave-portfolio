@@ -1,0 +1,4024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Never Go Full Dave — Miniature Painting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  /*
+    Font pairing (V3): Space Grotesk (display/headings) + IBM Plex Sans
+    (body/labels) + IBM Plex Mono (technical tags/specs). Swapped out V2's
+    Fraunces+Inter serif pairing, which was reading as gallery/wedding-site
+    elegant rather than craftsman. Geometric grotesk headings + a monospace
+    accent for technique names, time stamps, and spec-style metadata is meant
+    to read as "a guy who documents his process," not "fine art on a wall."
+    Color palette is untouched from V2 — same hex values, so every contrast
+    pairing already checked there (white-on-accent ~9.5:1) still holds
+    regardless of the new typefaces.
+
+    V4.3: --bg/--bg-raised/--line/--line-soft swapped from a warm
+    cream/off-white family to a cool steel-grey one (same relative
+    lightness steps between the four tokens, hue family shifted from warm
+    to cool so it pairs more naturally with the gunmetal/tarnished-gold
+    materials language below) — --text/--text-muted/--accent/--accent-deep
+    hues are untouched. Recomputed against the new --bg (sRGB relative
+    luminance, not eyeballed): accent-on-bg ~8.3:1, muted-on-bg ~6.5:1 —
+    both still clear their floors with the same wide margin as before. See
+    the recomputed numbers inline at each of this file's other
+    bg/bg-raised-dependent contrast comments (pricing tracery, about
+    granite, commission tracery, notes paper-grain) for the rest.
+  */
+  :root {
+    --bg: #eef0f0;
+    --bg-raised: #e5e8e8;
+    --text: #1c1a18;
+    --text-muted: #5a544d;
+    --accent: #7a2b2b;
+    --accent-deep: #5e2020;
+    --line: #d3d8d8;
+    --line-soft: #dde1e1;
+    --overlay: rgba(28, 24, 22, 0.6);
+    --warmth: 0;
+    --display: 'Space Grotesk', 'Arial Black', sans-serif;
+    --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    /* Tarnished-metal accents (V3.1 flash pass): a restrained materials
+       vocabulary layered on top of the existing burgundy accent, used only
+       for the heraldic mark and a few metallic edge-treatments below. Not a
+       new palette — --accent/--accent-deep still carry all body/UI color. */
+    --gunmetal: #55565a;
+    --gunmetal-light: #8b8c90;
+    --gold: #ab8a4c;
+    --gold-light: #cbb17c;
+
+    /* V4.2: warm parchment/bone token for text sitting on dark surfaces
+       (hero photo, reliquary band) — replaces a near-white
+       rgba(247,245,242,*) that read as clinical printer-paper white rather
+       than aged bone/parchment against this file's gunmetal/gold materials
+       language. Defined once at full opacity; call sites use it either
+       opaque (large opaque text like the hero h1 or reliquary placard) or
+       as a literal rgba() built from these same channel values at a tuned
+       alpha (smaller hero copy), so the translucency-vs-contrast tradeoff
+       stays visible at each call site instead of hidden behind
+       color-mix(). See the .hero-photo / .hero-aside / .reliquary-tracery
+       comments below for the contrast math this token has to clear. */
+    --parchment: #f0e6d2;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(120% 140% at 50% 0%,
+        hsl(calc(20 + var(--warmth)) 30% 96%) 0%,
+        var(--bg) 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  p { margin: 0; }
+
+  a {
+    color: var(--accent);
+  }
+
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .wrap {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding-inline: 1.25rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ---------- Scroll progress ---------- */
+
+  /* Thin fixed indicator above the header, filled via JS from scroll
+     position. Purely supplementary/decorative (the nav + browser scrollbar
+     already convey position), so it's aria-hidden and skipped entirely
+     under reduced motion rather than just losing its transition. */
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 30;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .scroll-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--accent) 55%, var(--accent-deep));
+    transition: width 0.12s linear;
+    transform-origin: left;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-progress { display: none; }
+  }
+
+  /* ---------- Header / Nav ---------- */
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(10px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 1.1rem;
+    gap: 1rem;
+  }
+
+  .wordmark-sm {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  /* "Full" was italicized in V2's serif; Space Grotesk has no italic cut on
+     Google Fonts, so emphasis is carried by weight + accent color instead. */
+  .wordmark-sm .full { color: var(--accent); }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 0;
+    /* Seven nav items no longer fit a narrow phone viewport without
+       wrapping the header; scope a horizontal scroller to mobile only
+       (min-width query below removes it once there's room) rather than
+       wrap the nav to a second line. */
+    overflow-x: auto;
+    max-width: calc(100vw - 9rem);
+    scrollbar-width: none;
+  }
+
+  nav ul::-webkit-scrollbar {
+    display: none;
+  }
+
+  nav a {
+    position: relative;
+    display: inline-block;
+    padding: 0.35rem 0.15rem;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    isolation: isolate;
+    box-shadow: inset 0 -2px 0 0 transparent;
+    transition: color 0.2s ease, box-shadow 0.25s ease;
+  }
+
+  /* Scrollspy: current section highlighted with the accent color plus a
+     persistent underline, toggled by the IntersectionObserver in script.
+     Independent of the ::before/::after hover-fill layer below. */
+  nav a.is-current {
+    color: var(--accent);
+    box-shadow: inset 0 -2px 0 0 var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    nav a { transition: none; }
+  }
+
+  /* box-outline-then-fill hover: border traces in, then fill sweeps behind text */
+  nav a::before,
+  nav a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  nav a::before {
+    border: 1px solid var(--accent);
+    transform: scaleY(2);
+    opacity: 0;
+    transition: transform 0.16s ease, opacity 0.16s ease;
+  }
+
+  nav a::after {
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0;
+    transition: transform 0.22s ease 0.1s, opacity 0.01s ease 0.1s;
+  }
+
+  nav a:hover,
+  nav a:focus-visible {
+    color: #fff;
+  }
+
+  nav a:hover::before,
+  nav a:focus-visible::before {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  nav a:hover::after,
+  nav a:focus-visible::after {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    nav a::before, nav a::after { transition: none; }
+  }
+
+  @media (min-width: 46rem) {
+    nav ul {
+      gap: clamp(0.75rem, 2vw, 1.75rem);
+      overflow-x: visible;
+      max-width: none;
+    }
+    nav a { font-size: 0.9rem; }
+  }
+
+  /* ---------- Hero ---------- */
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(4.5rem, 12vw, 8rem) clamp(3.5rem, 8vw, 6rem);
+    text-align: center;
+  }
+
+  /* Diorama photo as hero background, darkened + vignetted so the center
+     stays clearly visible while the edges fade into the page. V4.2 swaps
+     in a real diorama scene (assets/diorama_2.jpg — two miniatures and a
+     weapon-blast effect on a rubble base) for the old boxed/case product
+     shot, so there's no display-case frame to crop around anymore.
+     background-position (50% 42%) centers the blast + both miniatures —
+     picked by reasoning about the source photo's actual content (a
+     Pillow crop-simulation across representative hero aspect ratios
+     confirmed this framing keeps both miniatures fully in view rather than
+     cutting a sword tip or a foot) — and deliberately matches the radial
+     vignette's own focal point below, so the least-darkened part of the
+     overlay lands right on the image's actual subject instead of on empty
+     background.
+
+     Contrast recompute (V4.2, new image): worst case is still a pure-white
+     pixel of the photo directly behind text, floor layer only, no extra
+     vignette darkening. Re-verified with an actual Pillow pixel analysis
+     of assets/diorama_2.jpg rather than assumed: the weapon-blast flare
+     genuinely blows out to (255,255,255) within the on-screen crop region
+     across every representative hero viewport aspect ratio checked, so the
+     same worst-case assumption used for the old photo still holds and the
+     overlay recipe below needed no changes:
+     composite ≈ gray 85/255 → relative luminance ≈ 0.089.
+       .hero h1        var(--parchment), opaque              ≈ 6.10:1 (needs 3:1, large text)
+       .hero h1 em     var(--accent) ≈ 1.3:1 FAIL -> var(--gold-light) ≈ 3.59:1 (needs 3:1)
+       eyebrow/aside/tagline/meta  rgba(240,230,210,.94)      ≈ 5.79:1 (needs 4.5:1)
+     (.hero-meta previously fell through to var(--text-muted), which is
+     unreadable against this dark background — folded into the same
+     parchment token as its siblings above rather than left as a miss.)
+     .btn.btn-pulse CTA unaffected — solid --accent background, independent
+     of the page background.
+
+     Parallax (V4.2): --parallax-photo is set from scroll position by the
+     scroll handler in script (skipped entirely under reduced motion, so
+     this custom property just stays at its 0px default and the translate
+     below is a no-op). Uses the standalone `translate` property rather
+     than the `transform` shorthand specifically so it composes cleanly if
+     anything else on this element ever needs `transform` for something
+     else — same reasoning as the emblem-wing/spine split documented
+     further down this file (a `transform` shorthand completely replaces
+     any other `transform` value rather than combining with it; the
+     standalone translate/rotate/scale properties don't have that
+     problem). */
+  .hero-photo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(28, 24, 22, 0.75), rgba(28, 24, 22, 0.75)),
+      radial-gradient(150% 130% at 50% 42%, transparent 40%, rgba(28, 24, 22, 0.32) 100%),
+      url("assets/diorama_2.jpg");
+    background-position: 0 0, 0 0, 50% 42%;
+    background-size: auto, auto, cover;
+    background-repeat: no-repeat;
+    translate: 0 var(--parallax-photo, 0px);
+    will-change: translate;
+  }
+
+  /* Topographic line-draw: dual read as a climbing-route topo and a tactical
+     map overlay. Purely decorative, hidden from assistive tech; draws itself
+     once via stroke-dashoffset (see script), skipped to its resting state
+     under reduced motion.
+
+     V4.2: also carries a scroll-linked parallax translate (same
+     --parallax-topo custom property mechanism as .hero-photo, set by the
+     scroll handler in script at a slightly faster rate than the photo so
+     the two layers separate a little as the page scrolls — a cheap,
+     compositor-only depth cue). Set via the standalone `translate`
+     property rather than `transform` so it composes with the
+     .is-drifting animation below, which animates `transform: translate()
+     rotate()` as a shorthand — using the shorthand for parallax too would
+     make the drift keyframe silently overwrite it every tick instead of
+     combining. Purely decorative and non-text, so no contrast
+     implication; skipped entirely under reduced motion. */
+  .hero-topo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    translate: 0 var(--parallax-topo, 0px);
+  }
+
+  .hero-topo path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.1;
+  }
+
+  .hero-topo .contour {
+    color: var(--gold-light);
+    opacity: 0.28;
+  }
+
+  .hero-topo .contour-alt {
+    color: var(--gunmetal-light);
+    opacity: 0.22;
+  }
+
+  .hero-topo .tick {
+    color: var(--gunmetal-light);
+    opacity: 0.3;
+    stroke-width: 0.8;
+  }
+
+  /* Once the draw-in (scripted below) finishes, the whole map keeps a very
+     slow, low-amplitude drift, like a route topo shifting under raking
+     light rather than a static diagram. Amplitude is deliberately tiny
+     (a few px / a fraction of a degree) so it reads as ambient, not busy. */
+  .hero-topo.is-drifting {
+    animation: topo-drift 22s ease-in-out infinite alternate;
+  }
+
+  @keyframes topo-drift {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(-8px, 6px) rotate(0.5deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-topo.is-drifting { animation: none; }
+    /* Belt-and-suspenders: script never updates --parallax-photo/-topo
+       under reduced motion, but zero the translate here too rather than
+       relying solely on the custom properties' 0px fallback. */
+    .hero-photo, .hero-topo { translate: none; }
+  }
+
+  /* V4: promoted from a quiet background watermark to a real hero
+     centerpiece — considerably larger than V3 (width clamp roughly +25%)
+     and more present via the assemble-in entrance and eye-glow below, plus
+     a real but *deliberately capped* opacity increase (0.12 -> 0.16).
+
+     Contrast recompute, worst case: the emblem sits between .hero-photo
+     and the hero text (z-index 0 vs 1), so its brightest constituent tone
+     (metalGrad's gunmetal-light stop, #8b8c90, relative luminance ≈0.268)
+     composites on top of the existing worst-case photo floor (gray
+     85/255 ≈0.089 luminance, per the .hero-photo comment above) wherever
+     the emblem's shape overlaps the text column — which it does, since
+     both are centered. At rest (opacity 0.16, no glint): composite bg
+     luminance ≈0.118, hero-tagline (rgba(240,230,210,.94), V4.2's
+     parchment token) over it ≈4.80:1 (needs 4.5:1). The one-shot glint
+     keyframe below was tuned down specifically to keep this holding at
+     its peak too (see that comment) — a much larger opacity jump (0.3+)
+     or a strong brightness boost were both tried first and rejected here
+     for dropping this same pairing under 4.5:1. */
+  .emblem-hero {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: clamp(26rem, 72vw, 42rem);
+    height: auto;
+    transform: translate(-50%, -50%);
+    opacity: 0.16;
+    z-index: 0;
+    pointer-events: none;
+    animation: emblem-rotate 140s linear infinite, emblem-glint 2.2s ease-out 1.9s 1;
+  }
+
+  @keyframes emblem-rotate {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* Metallic sheen sweep: a one-shot brightness/glow pulse on the emblem
+     graphic itself once assembly finishes (delay matches the longest
+     assemble-in animation below), reading as light catching the metal
+     right after the eagle locks together.
+
+     Contrast recompute at peak (50%, brightness(1.1)): the brightest
+     metalGrad tone scaled by 1.1 composites to relative luminance ≈0.33;
+     blended into the same worst-case floor at this element's 0.16 opacity,
+     background luminance peaks at ≈0.128, and hero-tagline (V4.2's
+     rgba(240,230,210,.94) parchment token) over that is ≈4.54:1 — still
+     clears the 4.5:1 floor, though the margin is slimmer than it was with
+     the old near-white text (which had ≈0.14 of margin here; parchment has
+     ≈0.04, since it's a slightly lower-luminance color by design). A
+     stronger brightness(1.7)/heavier glow was the first draft and was
+     rejected for the same reason: it dropped this pairing under 4.5:1 by a
+     real margin, not just a rounding difference. */
+  @keyframes emblem-glint {
+    0%, 100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+    50% { filter: brightness(1.1) drop-shadow(0 0 10px rgba(203, 177, 124, 0.4)); }
+  }
+
+  /* The left wing's mirroring (scale(-1,1)) is a static SVG transform
+     *attribute* on its wrapping <g> (see markup below), deliberately kept
+     separate from the CSS-animated transform on the inner <use>: a CSS
+     `transform` on an element completely replaces an SVG transform
+     *attribute* on that same element rather than composing with it, so
+     putting the entrance keyframe directly on the mirrored element would
+     have silently discarded the mirror. Splitting them across parent/child
+     means both wings can share one "slide/rotate in" keyframe — the
+     left wing's parent mirror flips its direction automatically. */
+  .emblem-wing,
+  .emblem-spine {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .emblem-wing {
+    animation: wing-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .emblem-spine {
+    animation: spine-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+  }
+
+  @keyframes wing-in {
+    from { opacity: 0; transform: translateX(70px) rotate(22deg); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes spine-in {
+    from { opacity: 0; transform: translateY(-46px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* Red glowing-lens eye: a small, deliberately warlike detail on every
+     instance of the eagle mark (hero, pricing divider, notes divider,
+     reliquary band) — styling the circle inside the shared <symbol> and
+     letting it inherit through each <use>, so one rule updates all
+     instances at once.
+
+     V4.2 grimdark/flash pass: turned this one dial up rather than adding
+     a new effect per instance — wider blur radius and a faster cycle so
+     the "warlike lens" motif reads as more alive everywhere it already
+     appears, without introducing a second glow mechanism. Purely
+     decorative (the mark is aria-hidden or has a <title> everywhere it's
+     used), so no contrast implication. */
+  .eagle-eye {
+    fill: #c23b3b;
+    filter: drop-shadow(0 0 3px rgba(194, 59, 59, 0.95));
+    animation: eye-pulse 2.6s ease-in-out infinite;
+  }
+
+  @keyframes eye-pulse {
+    0%, 100% { filter: drop-shadow(0 0 2px rgba(194, 59, 59, 0.8)); }
+    50% { filter: drop-shadow(0 0 7px rgba(194, 59, 59, 1)) drop-shadow(0 0 13px rgba(194, 59, 59, 0.55)); }
+  }
+
+  /* Corner ornament color only — brightness/opacity are entirely
+     inherited from the parent .emblem-hero element (0.16 at rest, the
+     emblem-glint keyframe's filter at peak). Contrast note: --gold's
+     relative luminance (~0.275) scaled by the glint's brightness(1.1) peak
+     works out to ~0.337, essentially the same order as the ~0.33 already
+     used for the *existing* peak-case worst-case check in the .emblem-hero
+     comment above (that one used metalGrad's brightest stop scaled the
+     same way) — so this addition rides on math already accounted for
+     there rather than needing its own separate recompute. */
+  .emblem-ornament {
+    color: var(--gold);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .emblem-hero { animation: none; }
+    .emblem-wing, .emblem-spine {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    .eagle-eye { animation: none; }
+  }
+
+  /* Gold/gunmetal filings drifting up through the hero, like metal dust
+     off a fresh weld or brass shavings catching the light — this
+     direction's own material vocabulary, not flashy-v2's ember-orange.
+
+     Perf budget: capped at 22 elements (MOTE_COUNT in script below), each a
+     plain <span> with a radial-gradient background, animated purely via
+     CSS transform/opacity (compositor-only properties, no layout
+     thrashing). No per-frame JS after creation — the browser's own
+     animation timeline drives all 22 instances, which is well within
+     budget for a static decorative layer on a device as modest as a
+     low-end phone. Skipped entirely (never created) under reduced motion,
+     both in script and as a CSS fallback below. */
+  .hero-motes {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .mote {
+    position: absolute;
+    bottom: -1rem;
+    left: var(--mx, 50%);
+    width: var(--ms, 3px);
+    height: var(--ms, 3px);
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--mote-color, var(--gold-light)) 0%, transparent 72%);
+    opacity: 0;
+    animation: mote-rise var(--mdur, 9s) linear var(--mdelay, 0s) infinite;
+  }
+
+  @keyframes mote-rise {
+    0% { opacity: 0; transform: translate(0, 0); }
+    8% { opacity: 0.85; }
+    92% { opacity: 0.5; }
+    100% { opacity: 0; transform: translate(var(--mdx, 0), -34rem); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-motes { display: none; }
+  }
+
+  .hero .wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Load-in reveal: each element fades/slides up on a short stagger via
+     the --d custom property (index * delay set inline). Hero content only
+     — it's always above the fold, so a load-triggered animation is fine
+     without an IntersectionObserver. */
+  .reveal-up {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(var(--d, 0) * 110ms);
+  }
+
+  @keyframes fade-up {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.5em);
+    animation: word-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(var(--d, 0) * 90ms + 60ms);
+  }
+
+  @keyframes word-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-up, .reveal-word {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+  }
+
+  .hero-eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(240, 230, 210, 0.94);
+    margin-bottom: 1.25rem;
+    display: block;
+  }
+
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(2.6rem, 7vw, 5rem);
+    letter-spacing: -0.02em;
+    color: var(--parchment);
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--gold-light);
+  }
+
+  /* Wry one-line aside between the headline and the main tagline, styled
+     distinctly (smaller, IBM Plex Mono) from the tagline below it so it
+     reads as a quiet side comment, not a second sentence of the main copy
+     — same small-technical-aside treatment already used for .card-index /
+     .card-caption .meta elsewhere in this file, borrowed here for tone
+     rather than for technical labeling.
+
+     Contrast: reuses the hero-tagline color exactly (rgba(240,230,210,.94),
+     V4.2's parchment token), so the worst-case math already computed above
+     for that color against this hero background applies unchanged — at
+     rest (bg luminance ≈0.118) ≈4.80:1, at the emblem glint's peak (bg
+     luminance ≈0.128) ≈4.54:1. Both clear 4.5:1 for normal-size text; no
+     new derivation needed since the background hasn't changed. */
+  .hero-aside {
+    display: block;
+    margin: 1rem auto 0;
+    max-width: 30rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
+    color: rgba(240, 230, 210, 0.94);
+  }
+
+  .hero-tagline {
+    max-width: 34rem;
+    margin: 1.75rem auto 0;
+    color: rgba(240, 230, 210, 0.94);
+    font-size: clamp(1rem, 1.6vw, 1.15rem);
+  }
+
+  .cta-row {
+    margin-top: 2.5rem;
+  }
+
+  /* V4.2 bugfix: this previously fell through to var(--text-muted) (a dark
+     warm grey meant for body copy on the light --bg), which is unreadable
+     against the dark hero photo behind it — the .hero-photo comment above
+     already documented the fix ("eyebrow/tagline/meta") as if it applied
+     here, but the rule itself hadn't been updated to match. Folded into
+     the same parchment token as its hero-aside/hero-tagline/hero-eyebrow
+     siblings, so the same ≈5.79:1 contrast figure applies. */
+  .hero-meta {
+    margin-top: 1.1rem;
+    font-size: 0.8rem;
+    color: rgba(240, 230, 210, 0.94);
+  }
+
+  .btn {
+    position: relative;
+    display: inline-block;
+    padding: 0.85rem 1.75rem;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    border: 1px solid var(--accent);
+    border-radius: 2px;
+    overflow: hidden;
+    isolation: isolate;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  }
+
+  /* Primary hero CTA gets a slow breathing glow ring on top of the base
+     .btn styling, drawing the eye without a hard blink. Off entirely under
+     reduced motion — the button is still fully legible without it. */
+  .btn-pulse {
+    animation: btn-pulse 2.6s ease-in-out infinite;
+  }
+
+  @keyframes btn-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+    50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-pulse { animation: none; }
+  }
+
+  /* Red-glowing-lens accent on the primary CTA: a small pulsing dot, same
+     Adeptus-Mechanicus-adjacent red as --accent, made literal rather than
+     just implied by the button's own pulse ring. Purely decorative (the
+     button's accessible name is its text), so no contrast math applies to
+     the dot itself. */
+  .lens-dot {
+    display: inline-block;
+    width: 0.45rem;
+    height: 0.45rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff8a73 0%, var(--accent) 70%);
+    box-shadow: 0 0 5px 1px rgba(122, 43, 43, 0.65);
+    animation: lens-pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes lens-pulse {
+    0%, 100% { box-shadow: 0 0 4px 1px rgba(122, 43, 43, 0.5); opacity: 0.85; }
+    50% { box-shadow: 0 0 11px 3px rgba(122, 43, 43, 0.9); opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lens-dot { animation: none; }
+  }
+
+  /* Tarnished-metal edge on hover/focus: a thin gradient border sweeps in
+     to underline the same materials language used on the emblem and
+     pricing accent bars, on the one element type that's on every section
+     (the button). Border color is still --accent-deep at rest, so this
+     only shows up as an intentional accent, not a default state. */
+  .btn:hover,
+  .btn:focus-visible {
+    border-image: linear-gradient(90deg, var(--gold), var(--accent-deep) 65%, var(--gunmetal)) 1;
+  }
+
+  /* Brass texture, heavily muted via multiply blend so it only ever darkens
+     the button — never a contrast risk against the white label text. Shows
+     as a faint sheen on hover/focus rather than a constant effect. */
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: url("https://upload.wikimedia.org/wikipedia/commons/8/88/Gold_metallic_finish_clean_smooth_seamless_metal_surface_sheet_texture.jpg");
+    background-size: cover;
+    background-position: center;
+    mix-blend-mode: multiply;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn:hover,
+  .btn:focus-visible {
+    background: var(--accent-deep);
+    border-color: var(--accent-deep);
+  }
+
+  .btn:hover::before,
+  .btn:focus-visible::before {
+    opacity: 0.4;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn::before { transition: none; }
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--line);
+  }
+
+  .btn-outline::before { display: none; }
+
+  .btn-outline:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: transparent;
+  }
+
+  /* ---------- Section scaffolding ---------- */
+
+  section {
+    padding-block: clamp(3.5rem, 8vw, 6.5rem);
+  }
+
+  .section-head {
+    max-width: 40rem;
+    margin-bottom: clamp(2.25rem, 5vw, 3.5rem);
+  }
+
+  /* V4: every section eyebrow across the page carries the same small
+     8-pointed star mark (heraldic/sci-fi compass-star convention, not
+     exclusive IP) — one more place the motif shows up beyond the eagle
+     mark and card framing, without adding new copy or competing with the
+     accent-colored label text itself. */
+  .section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .eyebrow-star {
+    width: 0.6rem;
+    height: 0.6rem;
+    flex-shrink: 0;
+    color: var(--gold);
+  }
+
+  .section-head h2 {
+    position: relative;
+    padding-bottom: 0.9rem;
+    font-size: clamp(1.9rem, 4vw, 2.75rem);
+  }
+
+  /* V4.2 grimdark pass: a short tarnished-metal rule under every section
+     h2 on the page (gallery, diorama, process, pricing, about, notes) —
+     the same gold/gunmetal gradient + patina grain already used for
+     .section-divider and the pricing tier bars, extended to one more
+     recurring surface so the materials language shows up every time a
+     section starts, not just at the heraldic-mark dividers. Purely
+     decorative and non-text (sits below the heading's own text baseline
+     via the padding-bottom above), so no contrast implication. */
+  .section-head h2::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: clamp(2.25rem, 5vw, 3.5rem);
+    background: linear-gradient(90deg, var(--gold), var(--gunmetal-light) 75%, transparent);
+    opacity: 0.85;
+    filter: url(#patina-texture);
+  }
+
+  .section-head p {
+    margin-top: 1rem;
+    color: var(--text-muted);
+    max-width: 34rem;
+  }
+
+  /* ---------- Scroll reveal (generic) ---------- */
+
+  /* Broader version of the gallery's clip-path reveal, used for section
+     heads, process steps, about content, pricing/diorama/notes cards, and
+     the commission intake grid. Toggled by a single IntersectionObserver
+     in script; --i sets a per-item stagger within its group. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: calc(var(--i, 0) * 80ms);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* ---------- Pointer tilt (gallery cards, pricing cards, diorama frame) ---------- */
+
+  /* JS sets --tx/--ty (a -1..1 pointer position) and --tilt-active on
+     pointerenter/leave; CSS just reads them. No effect at all unless the
+     device reports fine pointer + hover (see script) or under reduced
+     motion, so touch devices and keyboard focus never see a skewed card. */
+  .tilt {
+    transform: perspective(900px)
+      rotateX(calc(var(--ty, 0) * -6deg))
+      rotateY(calc(var(--tx, 0) * 6deg))
+      scale(var(--tilt-scale, 1));
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+
+  .tilt.is-active {
+    transition: transform 0.08s linear;
+    --tilt-scale: 1.015;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tilt {
+      transform: none !important;
+      transition: none;
+    }
+  }
+
+  /* ---------- Ticker strip ---------- */
+
+  /* Editorial "spec sheet" ticker between hero and gallery: the same
+     technique vocabulary already listed in About/the modals, scrolling as
+     ambient texture rather than new information — aria-hidden throughout. */
+  .ticker-strip {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-raised);
+    overflow: hidden;
+    padding-block: 0.85rem;
+  }
+
+  .ticker-track {
+    display: inline-flex;
+    width: max-content;
+    gap: 2.5rem;
+    animation: ticker-scroll 32s linear infinite;
+    white-space: nowrap;
+  }
+
+  .ticker-track span {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .ticker-track span.dot {
+    color: var(--accent);
+    letter-spacing: 0;
+  }
+
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-track {
+      animation: none;
+      overflow-x: auto;
+    }
+  }
+
+  /* ---------- Section divider (heraldic mark) ---------- */
+
+  .section-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  /* V4: the divider lines carry the same tarnished-metal gradient as the
+     emblem and pricing accent bars now, instead of a flat --line grey —
+     one more surface pulled into the materials language rather than
+     leaving it to the eagle mark alone.
+
+     Grimdark pass: `filter: url(#patina-texture)` layers a faint noise
+     grain on top of the flat gradient so it reads as tarnished metal
+     rather than a clean CSS blend — same filter the eagle's fill uses,
+     referenced here via CSS instead of an SVG presentation attribute.
+     Purely decorative, non-text, so no contrast implication. */
+  .section-divider::before,
+  .section-divider::after {
+    content: "";
+    height: 2px;
+    width: clamp(2.5rem, 8vw, 6rem);
+    background: linear-gradient(90deg, transparent, var(--gunmetal-light) 35%, var(--gold) 50%, var(--gunmetal-light) 65%, transparent);
+    opacity: 0.8;
+    filter: url(#patina-texture);
+  }
+
+  .emblem-mark {
+    width: 1.9rem;
+    height: auto;
+    flex-shrink: 0;
+    animation: emblem-breathe 5s ease-in-out infinite;
+  }
+
+  @keyframes emblem-breathe {
+    0%, 100% { opacity: 0.75; transform: scale(1); filter: brightness(1); }
+    50% { opacity: 1; transform: scale(1.06); filter: brightness(1.25); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .emblem-mark { animation: none; opacity: 0.9; }
+  }
+
+  /* ---------- Gallery ---------- */
+
+  /* Multi-column masonry, not CSS Grid: Dave's real photos may end up a mix
+     of landscape and portrait, so cards can't assume one aspect ratio.
+
+     BUGFIX (V4): this container's height is auto (unconstrained) — it grows
+     to fit its content rather than being capped to a fixed height. Per the
+     CSS Multi-column spec, `column-fill: auto` on an auto-height container
+     fills the first column completely before starting the second, and only
+     balances across columns when the container has a fixed/constrained
+     height to divide content against. With no constrained height here, that
+     meant every card landed in column 1 and columns 2/3 stayed empty —
+     reading as "one card per row" regardless of viewport width, even though
+     the `columns: 2` / `columns: 3` media queries below were already
+     correct. `column-fill: balance` (the property's default, so removing
+     the declaration entirely would do the same thing) distributes content
+     across all available columns even without a fixed height, which is
+     what this layout actually needs. */
+  .gallery-grid {
+    columns: 1;
+    column-gap: clamp(1.75rem, 4vw, 2.75rem);
+    column-fill: balance;
+  }
+
+  @media (min-width: 38rem) {
+    .gallery-grid { columns: 2; }
+  }
+
+  @media (min-width: 62rem) {
+    .gallery-grid { columns: 3; }
+  }
+
+  .card {
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    break-inside: avoid;
+    margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+  }
+
+  .card.is-visible {
+    clip-path: inset(0 0 0 0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card {
+      clip-path: inset(0 0 0 0) !important;
+      transition: none !important;
+    }
+  }
+
+  /* Entire card is a real <button> so the whole thing is one accessible
+     trigger. Its children are phrasing content (spans, not div/p/h3) to
+     keep the button's content model valid. */
+  .card-trigger {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    outline-offset: 6px;
+  }
+
+  .card-art {
+    display: block;
+    aspect-ratio: 4 / 5;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px transparent;
+    transition: box-shadow 0.25s ease;
+  }
+
+  .card-art.is-landscape {
+    aspect-ratio: 4 / 3;
+  }
+
+  .card-trigger:hover .card-art,
+  .card-trigger:focus-visible .card-art {
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-art { transition: none; }
+  }
+
+  /* Metallic wipe on hover/focus: a diagonal light band parked off-canvas
+     at rest, swept across on interaction — a "dramatic reveal" beyond the
+     existing clip-path stagger, distinct from the .card-art::after gradient
+     below (that one is a permanent bottom-shadow, this one is a transient
+     hover effect on ::before). The card-art/-index/-placeholder-mark text
+     it passes over is all inside an aria-hidden decorative wrapper (real
+     accessible content is the caption below), and the highlight is brief
+     and translucent enough that even the worst-case sighted-user moment
+     doesn't erase the placeholder labels, just brightens them. */
+  .card-art::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(115deg,
+      transparent 32%,
+      rgba(255, 255, 255, 0.28) 48%,
+      rgba(203, 177, 124, 0.32) 52%,
+      transparent 68%);
+    transform: translateX(-130%);
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card-trigger:hover .card-art::before,
+  .card-trigger:focus-visible .card-art::before {
+    transform: translateX(130%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-art::before { transition: none; transform: none; opacity: 0; }
+  }
+
+  /* Armor-panel corner framing: a reusable bracket mark (defined once,
+     shared with the diorama frame) rather than a plain box, echoing sci-fi
+     plating rivets/corner-guards. Sits above the gradient art but below
+     the caption (which lives outside .card-art), always faintly present
+     and brightening on hover/focus so the card itself reads as "assembled
+     from armor plate," not just a colored rectangle. */
+  /* V4.2 grimdark pass: same patina grain the emblem/dividers/pricing bars
+     already carry, applied here too so the gallery + diorama corner
+     brackets read as weathered plate rather than a clean vector line —
+     purely decorative/non-text, so no contrast implication. */
+  .card-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    color: var(--gold-light);
+    opacity: 0.55;
+    pointer-events: none;
+    filter: url(#patina-texture);
+    transition: opacity 0.25s ease, color 0.25s ease;
+  }
+
+  .card-trigger:hover .card-frame,
+  .card-trigger:focus-visible .card-frame {
+    opacity: 0.95;
+    color: var(--gold);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-frame { transition: none; }
+  }
+
+  /* Same corner-frame reused on the diorama photo, which isn't a button —
+     brighten it on plain mouse hover as a bonus, but its default (0.55)
+     opacity already reads fine unhovered since it's not gating any
+     functionality. */
+  .diorama-frame:hover .card-frame {
+    opacity: 0.95;
+    color: var(--gold);
+  }
+
+  .card-art::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.18) 100%);
+  }
+
+  .card-art-inner {
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+
+  .card-index {
+    position: absolute;
+    top: 0.9rem;
+    left: 0.9rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.78);
+    z-index: 1;
+  }
+
+  .card-placeholder-mark {
+    position: absolute;
+    bottom: 0.9rem;
+    left: 0.9rem;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.78);
+    z-index: 1;
+  }
+
+  .card-caption {
+    display: block;
+    padding-top: 0.9rem;
+  }
+
+  .card-caption .name {
+    display: block;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+
+  .card-caption .meta {
+    display: block;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
+  }
+
+  .card-cue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.65rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    transition: color 0.2s ease 0.05s, transform 0.2s ease 0.05s;
+  }
+
+  .card-cue .arrow {
+    display: inline-block;
+    transition: transform 0.2s ease 0.05s;
+  }
+
+  .card-trigger:hover .card-cue,
+  .card-trigger:focus-visible .card-cue {
+    color: var(--accent);
+  }
+
+  .card-trigger:hover .card-cue .arrow,
+  .card-trigger:focus-visible .card-cue .arrow {
+    transform: translateX(3px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-cue, .card-cue .arrow { transition: none; }
+  }
+
+  /* Six restrained gradient studies standing in for photography */
+  .art-1 { background: linear-gradient(155deg, #4a4844 0%, #6b5a4e 48%, #8a6f57 100%); }
+  .art-2 { background: linear-gradient(160deg, #5c3a38 0%, #7a2b2b 55%, #3a2220 100%); }
+  .art-3 { background: linear-gradient(150deg, #454f43 0%, #6b7a5e 50%, #3f463a 100%); }
+  .art-4 { background: linear-gradient(165deg, #3d3a37 0%, #5e2020 60%, #2a1c1b 100%); }
+  .art-5 { background: linear-gradient(140deg, #56544c 0%, #726047 55%, #423d36 100%); }
+  .art-6 { background: linear-gradient(160deg, #4a2c2b 0%, #6e5044 50%, #2f2220 100%); }
+
+  /* ---------- Diorama / environment study ---------- */
+
+  .diorama-layout {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 52rem) {
+    .diorama-layout {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 3rem;
+    }
+  }
+
+  /* V4.2: source photo is now the real diorama scene shared with the hero
+     background (assets/diorama_2.jpg, 3862x2268) instead of the old
+     569x481 shadow-box product shot, so there's no display-case frame
+     margin to crop out anymore. This frame's aspect-ratio (5:4) is
+     narrower than the source photo's (~1.7:1), so object-fit: cover only
+     ever crops width, not height — object-position's x value (50%,
+     dead-center) is what actually matters here, and was picked by
+     rendering the real crop at that position and confirming both
+     miniatures and the weapon-blast stay fully in frame (checked against
+     a Pillow crop-simulation, not guessed); the y value is inert for this
+     aspect ratio but left explicit for clarity. The radial + linear fades
+     below still soften the edges into this direction's warm-neutral
+     palette instead of a hard photo edge. */
+  .diorama-frame {
+    position: relative;
+    max-width: 26rem;
+    aspect-ratio: 5 / 4;
+    margin-inline: auto;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 1.5rem 3rem rgba(28, 24, 22, 0.28);
+  }
+
+  @media (min-width: 52rem) {
+    .diorama-frame { margin-inline: 0; }
+  }
+
+  .diorama-frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 50%;
+  }
+
+  /* Vignette: a soft radial darken at the corners/edges (keeps focus on
+     the diorama itself and gives the label below something to sit on)
+     plus a bottom linear fade into --bg-raised so the frame's lower edge
+     dissolves into the caption panel below it rather than cutting off
+     hard. */
+  .diorama-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(130% 110% at 50% 42%, transparent 52%, rgba(28, 24, 22, 0.5) 100%);
+  }
+
+  .diorama-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 72%, rgba(28, 24, 22, 0.55) 100%);
+  }
+
+  /* Contrast recompute (V4.2, new image): unlike the old shadow-box photo,
+     this image's bottom-left corner isn't inherently near-black — it's
+     part of the rubble base and carries real highlights (checked via
+     Pillow: a bright rubble/lighting pixel up to rgb(255,211,159) shows up
+     in that corner region at this crop). Re-verified with the actual
+     worst-case (brightest) pixel found there run through both overlays
+     above (::before's radial at this corner ≈0.5 alpha, ::after's bottom
+     fade at this vertical position ≈0.465 alpha): composite ≈
+     rgb(89,74,59), relative luminance ≈0.073. White text (rgba(255,255,
+     255,.85)) over that is ≈6.71:1 (needs 4.5:1) — still clears with real
+     margin, so no change needed here despite the completely different
+     source image. */
+  .diorama-tag {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 0.9rem;
+    z-index: 1;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .diorama-body .meta {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .diorama-body h3 {
+    font-size: clamp(1.3rem, 2.6vw, 1.7rem);
+  }
+
+  .diorama-body p {
+    color: var(--text-muted);
+    margin-top: 0.9rem;
+    max-width: 32rem;
+  }
+
+  .diorama-body .modal-facts {
+    margin-top: 1.25rem;
+    max-width: 32rem;
+  }
+
+  /* ---------- Reliquary band (grimdark pass) ---------- */
+
+  /* The one deliberately dark, heavy moment on this page — a near-black
+     gunmetal band between Process and Pricing, styled like a museum
+     placard on dark velvet rather than a repaint of the whole site. Built
+     entirely from existing tokens (--text, --gunmetal, --gold, --gold-
+     light, --bg) per the "extend USE not definition" rule — no new colors
+     defined.
+
+     Background worst case (used for every contrast check below): the
+     gradient's midpoint stop, color-mix(in srgb, var(--gunmetal) 45%,
+     var(--text)) ≈ rgb(54,53,54), relative luminance ≈0.036 — lighter
+     than the --text end stops, so it's the binding floor. */
+  .reliquary-band {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding-block: clamp(3rem, 7vw, 4.5rem);
+    background: linear-gradient(160deg,
+      var(--text) 0%,
+      color-mix(in srgb, var(--gunmetal) 45%, var(--text)) 50%,
+      var(--text) 100%);
+  }
+
+  /* Tracery backdrop: same pattern as the pricing centerpiece card, but in
+     --gunmetal-light (never --gold) specifically so it can never land
+     directly under the --gold-light drop-cap below at matching hue —
+     kept as a distinct color so the worst-case check stays a genuine
+     worst case rather than a same-color coincidence.
+
+     Contrast recompute (worst case: a tracery stroke pixel over the
+     gradient midpoint, opacity 0.12 var(--gunmetal-light) #8b8c90 over the
+     rgb(54,53,54) floor above): composite ≈ rgb(64,63,65), relative
+     luminance ≈0.050.
+       .reliquary-placard   var(--parchment) on that floor  ≈8.48:1 (needs 4.5:1)
+       ::first-letter       var(--gold-light) on that floor ≈5.04:1 (needs 3:1, large by size)
+     (V4.2: placard swapped from var(--bg) to var(--parchment) — var(--bg)
+     was doing double duty as "the page's light background" and "a
+     near-white text color on a dark panel," which is exactly the kind of
+     coincidental reuse the parchment token above exists to separate out.
+     Recomputed against both documented floors here: opaque parchment
+     scores ≈9.86:1 on the darker rgb(54,53,54) floor and ≈8.48:1 on this
+     tracery-lightened one — both comfortably clear 4.5:1.) */
+  .reliquary-tracery {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    color: var(--gunmetal-light);
+    opacity: 0.12;
+    pointer-events: none;
+  }
+
+  /* Top/bottom filigree rules: the same tarnished-metal gradient language
+     as .section-divider, patina-textured, sitting at the very edges of the
+     band where no text ever overlaps them (purely decorative, like the
+     section-divider lines, so no contrast implication). */
+  .reliquary-rule {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--gunmetal-light) 15%, var(--gold) 50%, var(--gunmetal-light) 85%, transparent);
+    opacity: 0.9;
+    filter: url(#patina-texture);
+  }
+
+  .reliquary-rule-top { top: 0; }
+  .reliquary-rule-bottom { bottom: 0; }
+
+  .reliquary-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .reliquary-emblem {
+    width: clamp(2.75rem, 6vw, 3.5rem);
+  }
+
+  /* V4.2 grimdark/flash pass: a capped ember/ash drift layer, the same
+     mechanics as .hero-motes (plain <span> particles, radial-gradient
+     background, animated purely via the compositor-friendly
+     transform/opacity below — no per-frame JS after creation) but tinted
+     toward the reliquary band's own warm rust/gold rather than the hero's
+     gold/gunmetal filings, so it reads as embers drifting up off the
+     band's "reliquary" surface rather than a repeat of the hero effect.
+
+     Perf budget: capped at 14 elements (EMBER_COUNT in script), created
+     once on load exactly like .hero-motes (no per-frame JS, no second
+     IntersectionObserver — the elements just sit off-screen animating
+     until the page scrolls to them, which is cheap enough at this count
+     to not need lazier creation) and never created at all under reduced
+     motion, matching .hero-motes' own budget statement. Both this layer
+     and .hero-motes are paused via the visibilitychange handler in script
+     when the tab is hidden. */
+  .reliquary-embers {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ember {
+    position: absolute;
+    bottom: -1rem;
+    left: var(--mx, 50%);
+    width: var(--ms, 3px);
+    height: var(--ms, 3px);
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--mote-color, var(--gold)) 0%, transparent 72%);
+    opacity: 0;
+    animation: mote-rise var(--mdur, 9s) linear var(--mdelay, 0s) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reliquary-embers { display: none; }
+  }
+
+  /* One-shot "ignite" flare: when the band scrolls into view (the
+     .reveal/.is-visible toggle already applied to .reliquary-content by
+     the generic reveal-on-scroll observer in script), the emblem gets a
+     brief brightness + red-bloom pulse layered on top of its own
+     always-on eye-pulse, reading as the reliquary catching light the
+     moment it's noticed. Purely decorative filter changes on a
+     non-text element, so no contrast implication; skipped under reduced
+     motion along with the rest of the .reveal system. */
+  .reliquary-content.is-visible .reliquary-emblem {
+    animation: reliquary-ignite 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s 1;
+  }
+
+  @keyframes reliquary-ignite {
+    0% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+    45% { filter: brightness(1.35) drop-shadow(0 0 14px rgba(194, 59, 59, 0.55)); }
+    100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reliquary-content.is-visible .reliquary-emblem { animation: none; }
+  }
+
+  /* Ornamental rule (item 5): a small gold diamond flourish above the
+     placard line, plus an enlarged, gold-light first letter standing in
+     for a drop cap — an ornate treatment on this one gothic-flavored label
+     without touching the rest of the type system. */
+  .reliquary-placard {
+    position: relative;
+    padding-top: 1.35rem;
+    max-width: 30rem;
+    font-family: var(--display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: clamp(1rem, 2.6vw, 1.3rem);
+    color: var(--parchment);
+  }
+
+  .reliquary-placard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0.55rem;
+    height: 0.55rem;
+    background: var(--gold);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .reliquary-placard::first-letter {
+    font-size: 1.6em;
+    color: var(--gold-light);
+  }
+
+  /* ---------- Pricing ---------- */
+
+  .pricing-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 60rem) {
+    .pricing-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .pricing-card {
+    position: relative;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 1.75rem;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* V4: pricing cards had no hover/focus state at all in V3 — a gold
+     border + lift on hover extends the metal-materials language into yet
+     another surface. Text colors are untouched by this (only
+     border-color/shadow/transform change), so none of the existing
+     contrast pairings on this card are affected. */
+  .pricing-card:hover,
+  .pricing-card:focus-within {
+    transform: translateY(-0.35rem);
+    border-color: var(--gold);
+    box-shadow: 0 1.25rem 2.25rem rgba(28, 24, 22, 0.2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pricing-card { transition: none; }
+    .pricing-card:hover, .pricing-card:focus-within { transform: none; }
+  }
+
+  /* V4.2 flash pass: a metallic sheen sweep on hover/focus, the same
+     "diagonal light band parked off-canvas at rest" technique the gallery
+     cards already use on .card-art::before, brought over to pricing so the
+     hover state has more than just a lift + gold border. Brief and
+     translucent (opacity capped at .16/.2) so it brightens the card's own
+     text in passing rather than obscuring it — same tolerance already
+     established for the gallery version. z-index 1 keeps it above the
+     card's normal-flow text but still below the centerpiece tier's
+     .pricing-frame (z-index 2). */
+  .pricing-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(115deg,
+      transparent 35%,
+      rgba(255, 255, 255, 0.16) 48%,
+      rgba(203, 177, 124, 0.2) 52%,
+      transparent 65%);
+    transform: translateX(-130%);
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pricing-card:hover::after,
+  .pricing-card:focus-within::after {
+    transform: translateX(130%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pricing-card::after { transition: none; transform: none; opacity: 0; }
+  }
+
+  /* Grimdark pass: same patina grain as the section-divider lines, applied
+     to this bar's flat gradient/solid fills so the tier-progression color
+     bar reads as tarnished plate rather than a clean paint swatch. */
+  .pricing-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--line);
+    filter: url(#patina-texture);
+  }
+
+  /* Same tarnished-metal gradient family as the emblem, walked from cool
+     gunmetal (tier 1) through aged gold (tier 2) into the deeper rust
+     accent (tier 3) — a quiet materials progression across the tiers
+     rather than a literal "recommended" badge. */
+  .pricing-card.tier-1::before { background: var(--gunmetal); }
+  .pricing-card.tier-2::before { background: var(--gold); }
+  .pricing-card.tier-3::before { background: linear-gradient(90deg, var(--gold), var(--accent-deep)); }
+
+  /* Centerpiece badge: the 8-pointed star gets its biggest single
+     appearance here, marking tier-3 ("Centerpiece & Diorama") as the
+     scope-individually / hero-model tier — a slow constant spin, not an
+     entrance animation, since it's just ambient texture once the card has
+     already revealed in. */
+  .pricing-star {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--gold);
+    opacity: 0.85;
+    animation: star-spin 14s linear infinite;
+  }
+
+  @keyframes star-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pricing-star { animation: none; }
+  }
+
+  /* Grimdark pass: the centerpiece tier gets the two treatments the other
+     two tiers don't — an always-on ornate frame (not gated by hover, since
+     this is the "highest emphasis" card) and a gothic tracery backdrop, so
+     it reads as ornamented rather than merely bracketed.
+
+     Stacking: .pricing-tracery sits at z-index -1 (paints before this
+     card's own in-flow, non-positioned text content per CSS2.1 stacking
+     order — negative z-index descendants paint ahead of in-flow content),
+     so the texture never sits on top of the copy. .pricing-frame sits at
+     z-index 2 (paints after in-flow content) since it's just thin edge
+     brackets that don't cover the text block.
+
+     Contrast recompute (worst case: a tracery stroke pixel directly behind
+     text, opacity 0.08 var(--gunmetal) #55565a over --bg-raised #e5e8e8,
+     V4.3 cool-grey token): composite ≈ rgb(217,220,221), relative
+     luminance ≈0.712 (vs the flat card's own ≈0.802). Re-checking the
+     card's existing text pairings against that darker floor: pricing-desc
+     (var(--text-muted)) ≈5.42:1 (needs 4.5:1), h3/pricing-eyebrow
+     (var(--text) / var(--text-muted)) ≈12.6:1, pricing-amount
+     (var(--accent)) ≈6.9:1 (needs 3:1, large text) — all still clear with
+     real margin. */
+  .pricing-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    color: var(--gold);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  .pricing-tracery {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    color: var(--gunmetal);
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  .pricing-eyebrow {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .pricing-card h3 {
+    font-size: 1.25rem;
+  }
+
+  .pricing-amount {
+    display: block;
+    margin-top: 0.85rem;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 3vw, 2rem);
+    color: var(--accent);
+  }
+
+  .pricing-amount .unit {
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-left: 0.25rem;
+  }
+
+  .pricing-desc {
+    margin-top: 0.85rem;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+  }
+
+  .pricing-list {
+    list-style: none;
+    margin: 1.1rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .pricing-list li {
+    padding-left: 1.1rem;
+    position: relative;
+  }
+
+  .pricing-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 0.4rem;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  /* ---------- Process ---------- */
+
+  .steps-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2rem;
+  }
+
+  .step {
+    position: relative;
+    padding-left: 1.75rem;
+    padding-bottom: 0.1rem;
+    border-left: 1px solid var(--line);
+  }
+
+  .step::before {
+    content: "";
+    position: absolute;
+    left: -0.4rem;
+    top: 0.15rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+  }
+
+  .step-num {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .step-title {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .step-desc {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    max-width: 26rem;
+  }
+
+  @media (min-width: 60rem) {
+    .steps-list {
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.5rem;
+    }
+
+    .step {
+      border-left: none;
+      border-top: 1px solid var(--line);
+      padding-left: 0;
+      padding-top: 1.5rem;
+    }
+
+    .step::before {
+      left: 0;
+      top: -0.4rem;
+    }
+  }
+
+  /* ---------- About ---------- */
+
+  #about {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Granite texture as a section backdrop, tying to the climbing detail.
+     Composited at ~10% opacity + grayscale over --bg (#eef0f0, V4.3
+     cool-grey token): result lands close to #e6e8e8, so body text
+     (#1c1a18) still reads at roughly 14.1:1 contrast — well clear of the
+     4.5:1 floor. Checked, not eyeballed. */
+  #about::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url("https://upload.wikimedia.org/wikipedia/commons/b/b1/Grey_rough_granite_rock_seamless_stone_surface_texture.jpg");
+    background-size: cover;
+    background-position: center;
+    filter: grayscale(1);
+    opacity: 0.1;
+  }
+
+  #about .wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  .about {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 52rem) {
+    .about { grid-template-columns: 1fr 1.3fr; align-items: start; }
+  }
+
+  .about-portrait {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: linear-gradient(155deg, #58524a 0%, #7a2b2b 45%, #2c2422 100%);
+    background-size: 180% 180%;
+    max-width: 20rem;
+    animation: portrait-drift 16s ease-in-out infinite alternate;
+  }
+
+  /* V4: About had no pointer-interactive element at all — adding the
+     shared .tilt class (from the existing pointer-tilt script, which
+     already selects any `.tilt` element generically) picks up the
+     rotateX/rotateY effect for free, then this cursor-following glare on
+     ::before pushes that same mechanism one step further by reusing the
+     --tx/--ty custom properties the script already sets. */
+  .about-portrait.tilt::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(16rem circle at calc(50% + var(--tx, 0) * 40%) calc(50% + var(--ty, 0) * 40%), rgba(255, 255, 255, 0.32), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .about-portrait.tilt.is-active::before {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about-portrait.tilt::before { display: none; }
+  }
+
+  @keyframes portrait-drift {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 40%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about-portrait { animation: none; }
+  }
+
+  .about-body p + p {
+    margin-top: 1.1rem;
+  }
+
+  .about-body p {
+    color: var(--text-muted);
+    max-width: 36rem;
+  }
+
+  .about-body strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .quote-line {
+    margin: 1.5rem 0 0;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--accent);
+    font-style: italic;
+    color: var(--text);
+    max-width: 36rem;
+  }
+
+  .about-facts {
+    margin: 1.75rem 0 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 1.25rem 1rem;
+    max-width: 36rem;
+  }
+
+  @media (min-width: 30rem) {
+    .about-facts { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .about-facts dt {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .about-facts dd {
+    margin: 0.35rem 0 0;
+    font-size: 0.92rem;
+    color: var(--text);
+  }
+
+  /* ---------- Commission ---------- */
+
+  /* V4.2 grimdark pass: the same gothic-tracery pattern already used on the
+     reliquary band and the pricing centerpiece card, extended to one more
+     section for visual rhythm — a section that had no backdrop texture at
+     all before this. Sits behind both .commission (which has its own
+     opaque --bg-raised background, so the tracery only shows in that
+     block's padding/gutters) and .intake-brief (no background of its own,
+     so it shows more directly there).
+
+     Contrast recompute (worst case: a tracery stroke pixel over --bg,
+     opacity 0.05 var(--gunmetal-light) #8b8c90 over #eef0f0, V4.3
+     cool-grey token): composite ≈ rgb(233,235,235), relative luminance
+     ≈0.827 — barely darker than --bg itself (≈0.868). Re-checking this
+     section's text pairings against that floor: var(--text) body/labels
+     ≈14.5:1, var(--text-muted) (.commission-list / .commission-note /
+     .intake-item p) ≈6.24:1, both needing 4.5:1 — huge margin either way,
+     as expected from such a light touch of texture. */
+  #commission {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .commission-tracery {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    color: var(--gunmetal-light);
+    opacity: 0.05;
+    pointer-events: none;
+  }
+
+  #commission .wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  .commission {
+    background: var(--bg-raised);
+    border-radius: 2px;
+    padding: clamp(2rem, 6vw, 3.5rem);
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 52rem) {
+    .commission { grid-template-columns: 1.2fr 1fr; align-items: center; }
+  }
+
+  .commission-list {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.65rem;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+  }
+
+  .commission-list li {
+    padding-left: 1.2rem;
+    position: relative;
+  }
+
+  .commission-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 0.4rem;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  /* Numbered inquiry strip — three steps joined by a thin tick-marked line,
+     a quiet echo of the topo/route motif rather than a new effect. */
+  .inquiry-steps {
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .inquiry-steps li {
+    position: relative;
+    padding-top: 1.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .inquiry-steps li::before {
+    content: "";
+    position: absolute;
+    top: 0.35rem;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .inquiry-steps li::after {
+    content: "";
+    position: absolute;
+    top: 0.05rem;
+    left: 0;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    background: var(--bg-raised);
+  }
+
+  .inquiry-steps li:first-child::before { left: 50%; }
+  .inquiry-steps li:last-child::before { right: 50%; }
+
+  .inquiry-steps .num {
+    display: block;
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 0.85rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .commission-panel {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 1.75rem;
+  }
+
+  .commission-panel .label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .commission-panel .email-link {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.3rem;
+    text-decoration: none;
+    color: var(--text);
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 0.15rem;
+  }
+
+  .commission-panel .email-link:hover {
+    color: var(--accent);
+  }
+
+  .commission-note {
+    margin-top: 1.25rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  /* Intake brief: what to actually put in the first email, so the mailto
+     link above reads as a real intake process rather than a bare address.
+     Still no working form/backend — this is copy, not a submission UI. */
+  .intake-brief {
+    margin-top: clamp(2.5rem, 6vw, 3.5rem);
+    padding-top: clamp(1.75rem, 4vw, 2.5rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .intake-brief h3 {
+    font-size: 1.1rem;
+  }
+
+  .intake-brief > p {
+    margin-top: 0.6rem;
+    color: var(--text-muted);
+    max-width: 36rem;
+  }
+
+  .intake-grid {
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 42rem) {
+    .intake-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .intake-item {
+    display: flex;
+    gap: 0.9rem;
+    align-items: baseline;
+  }
+
+  .intake-num {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .intake-item h4 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 0.98rem;
+    margin: 0;
+  }
+
+  .intake-item p {
+    margin: 0.3rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.86rem;
+    max-width: 22rem;
+  }
+
+  /* ---------- Notes / blog ---------- */
+
+  /* V4.2 grimdark pass: an aged-parchment paper-grain texture behind the
+     notes cards — the #paper-grain filter (defined in the shared defs
+     block, a warm gold-tinted feTurbulence grain, alpha baked in at 0.06)
+     applied to a plain backdrop rect, evoking old paper/archive pages
+     rather than the metal-corrosion read the patina-texture filter is
+     used for elsewhere.
+
+     Contrast recompute (worst case: the grain composited at its baked-in
+     0.06 alpha, tinted toward var(--gold) #ab8a4c, over --bg #eef0f0,
+     V4.3 cool-grey token): composite ≈ rgb(234,234,230), relative
+     luminance ≈0.821. Re-checking this section's text pairings against
+     that floor: .note-title (var(--text)) ≈14.38:1, .tag (var(--accent))
+     ≈7.89:1, .date/.archive-note (var(--text-muted)) ≈6.20:1 — all need
+     only 4.5:1, huge margin either way.
+
+     V4.3 restyle: the card treatment below was a plain minimalist
+     blog-teaser layout (thin top border, no corner brackets, a fully-
+     rounded pill cue) that didn't match the angular corner-frame/
+     patina-texture language Gallery/Pricing/Diorama use. Brought into the
+     same system: each .note-card gets the #corner-frame bracket (same
+     symbol + .card-frame rules gallery/pricing already use, brightening
+     on the trigger's hover/focus) plus the same tarnished-metal top bar
+     .pricing-card::before uses (patina-texture-filtered gold/gunmetal-
+     light gradient) in place of the flat border-top, and .note-cue drops
+     the 100px pill radius for the site's standard 2px corner (matching
+     .btn and every other rectangular surface here). Both additions are
+     purely decorative/non-text (bracket color, top-bar gradient), so no
+     new contrast math applies beyond what's above. */
+  #notes {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .notes-paper {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  #notes .wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  .notes-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 46rem) {
+    .notes-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .note-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 1.75rem 1.25rem 1.25rem;
+  }
+
+  /* Same tarnished-metal top bar as .pricing-card::before (gold/gunmetal-
+     light gradient, patina-texture grain) instead of the flat
+     border-top this card used before the V4.3 restyle — purely
+     decorative/non-text, so no contrast implication. */
+  .note-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gunmetal-light) 75%, transparent);
+    opacity: 0.85;
+    filter: url(#patina-texture);
+  }
+
+  .notes-archive {
+    margin-top: clamp(2rem, 5vw, 3rem);
+    text-align: center;
+  }
+
+  .archive-note {
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .note-trigger {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    outline-offset: 6px;
+  }
+
+  /* Same #corner-frame bracket + .card-frame rules Gallery/Diorama use
+     (reused as-is, not a new bracket shape), sitting as a direct child of
+     .note-card (like .diorama-frame's own corner-frame) rather than
+     inside the button, so it can bracket the card's full box, flush with
+     its border, instead of just the button's content box. Brightens on
+     hover/focus-within the same way .pricing-card's hover/focus-within
+     pair already does for that card. */
+  .note-card:hover .card-frame,
+  .note-card:focus-within .card-frame {
+    opacity: 0.95;
+    color: var(--gold);
+  }
+
+  .note-trigger .tag {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* Visually identical to an h3, but kept as a span since it lives inside a
+     button (h3 isn't valid phrasing content there). The real heading for
+     this content appears in the modal once it opens. */
+  .note-trigger .note-title {
+    display: block;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.15rem;
+    line-height: 1.15;
+    margin-top: 0.6rem;
+    color: var(--text);
+  }
+
+  .note-trigger .date {
+    display: block;
+    margin-top: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--text-muted);
+  }
+
+  /* V4.3 restyle: dropped the 100px fully-rounded pill for this site's
+     standard 2px corner (same radius as .btn and every other rectangular
+     surface here) — a soft pill read as "weird" against the angular
+     corner-frame/patina geometry everywhere else on the page. */
+  .note-cue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.85rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.25rem 0.7rem;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .note-cue .arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .note-trigger:hover .note-cue,
+  .note-trigger:focus-visible .note-cue {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .note-trigger:hover .note-cue .arrow,
+  .note-trigger:focus-visible .note-cue .arrow {
+    transform: translateX(3px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .note-cue, .note-cue .arrow { transition: none; }
+  }
+
+  /* ---------- Footer ---------- */
+
+  footer {
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+    padding-block: 2.5rem;
+  }
+
+  /* Public-domain topographic map scan, used directly (it's already
+     black-and-white line art) at low opacity as a full-bleed texture — the
+     same signature motif as the hero, in its literal source form here. */
+  footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url("https://upload.wikimedia.org/wikipedia/commons/d/d8/Contour_map_%28PSF%29.png");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.07;
+  }
+
+  footer .wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+    text-align: center;
+  }
+
+  @media (min-width: 40rem) {
+    .footer-inner {
+      flex-direction: row;
+      justify-content: space-between;
+      text-align: left;
+    }
+  }
+
+  .footer-text {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .copyright {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .credit {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.85;
+  }
+
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--text);
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .social-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .social-link svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  /* ---------- Modal ---------- */
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background: var(--overlay);
+    opacity: 0;
+    transition: opacity 0.22s ease;
+  }
+
+  .modal-overlay[hidden] {
+    display: none;
+  }
+
+  .modal-overlay.is-open {
+    opacity: 1;
+  }
+
+  .modal {
+    position: relative;
+    width: 100%;
+    max-width: 34rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: clamp(1.75rem, 5vw, 2.75rem);
+    box-shadow: 0 1.5rem 3rem rgba(28, 24, 22, 0.22);
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.22s ease;
+  }
+
+  .modal-overlay.is-open .modal {
+    transform: translateY(0) scale(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modal-overlay, .modal { transition: none; }
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .modal-close:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .modal-close svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .modal-eyebrow {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.65rem;
+    padding-right: 2.5rem;
+  }
+
+  .modal h3 {
+    font-size: clamp(1.3rem, 3vw, 1.6rem);
+    padding-right: 2.5rem;
+  }
+
+  .modal-meta {
+    margin-top: 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+
+  .modal-body {
+    margin-top: 1.25rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .modal-body p {
+    color: var(--text-muted);
+  }
+
+  /* Structured craft specifics (technique used, rough time investment) —
+     styled like a spec sheet so it reads as documented process rather than
+     a caption. */
+  .modal-facts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+  }
+
+  @media (min-width: 28rem) {
+    .modal-facts { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .modal-facts dt {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .modal-facts dd {
+    margin: 0.3rem 0 0;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<!-- Shared heraldic mark: an original, abstract double-headed-eagle-style
+     device (not GW's Aquila — no laurel, no skull, no feather detailing),
+     rendered once here and reused via <use>. Filled with a tarnished
+     gunmetal/aged-gold/rust gradient to carry the 40k/AoS material read
+     without a literal faction icon. Purely decorative everywhere it's
+     used, so this defs block itself never renders.
+
+     V4 additions: `eagleSpine` gets its own id (previously an unlabeled
+     path) so the hero-only build below can animate the two wings and the
+     spine in as three separate pieces ("assemble on load") instead of one
+     static mark. The eye circle gets class="eagle-eye" so every instance
+     of the emblem anywhere on the page — hero, pricing divider, notes
+     divider — picks up a small red glowing-lens detail via CSS (styling a
+     <symbol>'s child is respected by every <use> instance of it, the same
+     mechanism icon-sprite systems rely on for `currentColor`). A second
+     symbol, an 8-pointed compass-star (two overlaid 4-point stars 45°
+     apart — a standard heraldic/sci-fi device, not exclusive IP), is added
+     for the section-eyebrow marks and the pricing centerpiece badge.
+
+     Grimdark pass additions (V4.1): a `gothic-tracery` tile pattern
+     (quatrefoil-and-pointed-arch, an original architectural motif, not a
+     literal cathedral scan) for use as a low-opacity textured backdrop; a
+     `patina-texture` filter (feTurbulence grain composited over the source
+     at low alpha) baked directly onto the eagle's metal fill via the
+     `filter` attribute below, so every instance of the mark — hero,
+     dividers, notes — reads as tarnished rather than a flat gradient; and
+     a `filigree-frame` symbol, a more ornamented double-line evolution of
+     `corner-frame` (bold outer bracket + fine inner bracket + corner rivet
+     dots) for the pricing centerpiece tier. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- Literal hex, not var(--gunmetal) etc: stop-color presentation
+         attributes don't reliably resolve CSS custom properties across
+         browsers, and these values track the CSS variables of the same
+         name above 1:1, so there's nothing to keep in sync by hand. -->
+    <linearGradient id="metalGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b8c90" />
+      <stop offset="45%" stop-color="#55565a" />
+      <stop offset="62%" stop-color="#ab8a4c" />
+      <stop offset="100%" stop-color="#5e2020" />
+    </linearGradient>
+    <!-- Weathered-metal filter: fine fractal-noise grain, flattened to
+         near-black at low alpha (last row of the color matrix scales the
+         alpha channel only, to 0.07), then composited over whatever it's
+         applied to. Referenced both as an SVG `filter` attribute (on the
+         eagle's fill below, baked into the shared symbol so every <use>
+         inherits it for free) and as a CSS `filter: url(#patina-texture)`
+         on a few flat-gradient "metal" surfaces elsewhere (pricing card
+         top bars, section-divider lines, reliquary band rules) — both
+         reference paths are standard and work the same way. */ -->
+    <filter id="patina-texture" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" result="grain" />
+      <feColorMatrix in="grain" type="matrix"
+        values="0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0.07 0"
+        result="grainAlpha" />
+      <feComposite in="grainAlpha" in2="SourceGraphic" operator="over" />
+    </filter>
+    <!-- Aged-parchment paper grain (V4.2 grimdark pass): same feTurbulence
+         construction as patina-texture above, but tuned as a warm, gold-
+         tinted fine grain rather than a near-black metal-corrosion grain,
+         and self-contained (no feComposite/SourceGraphic dependency, since
+         it's applied to a plain backdrop rect rather than baked onto an
+         existing fill) — the feColorMatrix output is the whole filter
+         result. Backing color (0.67, 0.54, 0.31 ≈ #ab8a4c/--gold) and
+         alpha (0.06) are chosen to match the contrast recompute in the
+         #notes comment further down: composited over --bg at that alpha,
+         body/label text on top still clears 4.5:1 with wide margin. */ -->
+    <filter id="paper-grain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015 0.85" numOctaves="2" seed="4" stitchTiles="stitch" result="grain" />
+      <feColorMatrix in="grain" type="matrix"
+        values="0 0 0 0 0.67
+                0 0 0 0 0.54
+                0 0 0 0 0.31
+                0 0 0 0.06 0" />
+    </filter>
+    <!-- Gothic tracery tile: a pointed arch plus a quatrefoil built from
+         four overlapping circles, the standard hand-drawn construction for
+         this ornament (not a photo/scan of any real building). Colored via
+         `currentColor` on whatever references it, same convention as
+         star-mark/corner-frame below. -->
+    <pattern id="gothic-tracery" width="64" height="64" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="currentColor" stroke-width="1.1">
+        <path d="M0 64 L0 32 Q0 4 32 4 Q64 4 64 32 L64 64" />
+        <circle cx="32" cy="18" r="10" />
+        <circle cx="16" cy="34" r="10" />
+        <circle cx="48" cy="34" r="10" />
+        <circle cx="32" cy="50" r="10" />
+        <circle cx="32" cy="34" r="5" />
+      </g>
+    </pattern>
+    <symbol id="eagle-emblem" viewBox="0 0 200 150">
+      <g id="eagleHalfR" fill="url(#metalGrad)" filter="url(#patina-texture)">
+        <path d="M100 22 L126 6 L142 24 L130 40 L106 34 Z" />
+        <path d="M106 34 C142 36 180 54 194 90 C170 86 148 92 128 78 C114 68 104 50 106 34 Z" />
+        <circle class="eagle-eye" cx="122" cy="22" r="3.4" />
+      </g>
+      <use href="#eagleHalfR" transform="translate(200,0) scale(-1,1)" />
+      <path id="eagleSpine" d="M88 30 L112 30 L112 108 L100 138 L88 108 Z" fill="url(#metalGrad)" filter="url(#patina-texture)" />
+    </symbol>
+    <symbol id="star-mark" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 0 L14.2 9.8 L24 12 L14.2 14.2 L12 24 L9.8 14.2 L0 12 L9.8 9.8 Z" />
+      <path fill="currentColor" d="M12 0 L14.2 9.8 L24 12 L14.2 14.2 L12 24 L9.8 14.2 L0 12 L9.8 9.8 Z" transform="rotate(45 12 12)" />
+    </symbol>
+    <symbol id="corner-frame" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square">
+        <path d="M2 22 L2 2 L22 2" />
+        <path d="M78 2 L98 2 L98 22" />
+        <path d="M98 78 L98 98 L78 98" />
+        <path d="M22 98 L2 98 L2 78" />
+      </g>
+    </symbol>
+    <!-- More ornamented evolution of corner-frame for the pricing
+         centerpiece tier: bold outer bracket, a finer inset secondary
+         bracket (the "double line" filigree read), and a small rivet dot
+         at each true corner. -->
+    <symbol id="filigree-frame" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
+        <path d="M2 24 L2 2 L24 2" />
+        <path d="M76 2 L98 2 L98 24" />
+        <path d="M98 76 L98 98 L76 98" />
+        <path d="M24 98 L2 98 L2 76" />
+      </g>
+      <g fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square">
+        <path d="M8 18 L8 8 L18 8" />
+        <path d="M82 8 L92 8 L92 18" />
+        <path d="M92 82 L92 92 L82 92" />
+        <path d="M18 92 L8 92 L8 82" />
+      </g>
+      <g fill="currentColor">
+        <circle cx="2" cy="2" r="2.2" />
+        <circle cx="98" cy="2" r="2.2" />
+        <circle cx="98" cy="98" r="2.2" />
+        <circle cx="2" cy="98" r="2.2" />
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="scroll-progress" aria-hidden="true">
+  <div class="scroll-progress-bar" id="scrollProgressBar"></div>
+</div>
+
+<header>
+  <div class="wrap header-inner">
+    <span class="wordmark-sm">Never Go <span class="full">Full</span> Dave</span>
+    <nav aria-label="Primary">
+      <ul>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#diorama">Diorama</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#commission">Commission</a></li>
+        <li><a href="#notes">Notes</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="hero-photo" aria-hidden="true"></div>
+    <svg class="hero-topo" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+      <title>Topographic contour line motif</title>
+      <path class="contour" d="M 90 260 C 140 190, 230 150, 320 175 C 410 200, 430 270, 380 320 C 330 370, 220 365, 160 330 C 110 300, 70 285, 90 260 Z" />
+      <path class="contour" d="M 40 250 C 100 165, 220 110, 335 145 C 450 180, 480 275, 415 340 C 350 405, 210 400, 130 355 C 65 320, 5 305, 40 250 Z" />
+      <path class="contour-alt" d="M 10 240 C 80 140, 225 70, 355 115 C 485 160, 525 280, 445 360 C 365 440, 195 435, 100 380 C 25 340, -35 320, 10 240 Z" />
+      <path class="contour-alt" d="M 560 60 C 610 40, 670 55, 690 100 C 710 145, 680 190, 630 195 C 580 200, 540 170, 545 125 C 548 100, 540 70, 560 60 Z" />
+      <path class="contour" d="M 545 45 C 605 15, 690 35, 715 90 C 740 145, 700 205, 635 215 C 570 225, 515 185, 520 125 C 523 90, 510 60, 545 45 Z" />
+      <path class="tick" d="M 300 175 L 300 150" />
+      <path class="tick" d="M 640 100 L 665 92" />
+      <path class="tick" d="M 150 335 L 128 350" />
+    </svg>
+    <svg class="emblem-hero" viewBox="0 0 200 150" aria-hidden="true" focusable="false">
+      <title>Heraldic eagle mark, decorative, assembling on load</title>
+      <g>
+        <use href="#eagleHalfR" class="emblem-wing"></use>
+      </g>
+      <g transform="translate(200,0) scale(-1,1)">
+        <use href="#eagleHalfR" class="emblem-wing"></use>
+      </g>
+      <use href="#eagleSpine" class="emblem-spine"></use>
+      <!-- Reliquary-plate corner ornament: same coordinate space as the
+           eagle (0 0 200 150), living inside this svg rather than as a
+           separate overlay so it inherits the exact same 0.16 element
+           opacity and glint filter as the rest of the mark — see the
+           .emblem-ornament CSS comment for why that means no separate
+           contrast recompute is needed. -->
+      <g class="emblem-ornament">
+        <path d="M14 6 L14 2 L2 2 L2 14" fill="none" stroke="currentColor" stroke-width="1.4" />
+        <path d="M186 6 L186 2 L198 2 L198 14" fill="none" stroke="currentColor" stroke-width="1.4" />
+        <path d="M14 144 L14 148 L2 148 L2 136" fill="none" stroke="currentColor" stroke-width="1.4" />
+        <path d="M186 144 L186 148 L198 148 L198 136" fill="none" stroke="currentColor" stroke-width="1.4" />
+        <circle cx="100" cy="4" r="2.6" fill="currentColor" />
+        <circle cx="100" cy="146" r="2.6" fill="currentColor" />
+      </g>
+    </svg>
+    <div class="hero-motes" id="heroMotes" aria-hidden="true"></div>
+    <div class="wrap">
+      <span class="hero-eyebrow reveal-up" style="--d: 0;">Miniature painting &amp; commission work</span>
+      <h1>
+        <span class="reveal-word" style="--d: 1;">Never Go</span>
+        <span class="reveal-word" style="--d: 2;"><em>Full</em></span>
+        <span class="reveal-word" style="--d: 3;">Dave</span>
+      </h1>
+      <p class="hero-aside reveal-up" style="--d: 4;">Fair warning: you might just end up with a genuinely well-painted miniature.</p>
+      <p class="hero-tagline reveal-up" style="--d: 5;">
+        Considered brushwork on Astra Militarum and Khorne miniatures.
+        Slow paint, sharp edges, no shortcuts.
+      </p>
+      <div class="cta-row reveal-up" style="--d: 6;">
+        <a class="btn btn-pulse" href="#gallery"><span class="lens-dot" aria-hidden="true"></span>View the work</a>
+      </div>
+      <p class="hero-meta reveal-up" style="--d: 7;">Currently booking a limited number of Q3 commission slots.</p>
+    </div>
+  </section>
+
+  <div class="ticker-strip" aria-hidden="true">
+    <div class="ticker-track">
+      <span>Zenithal Priming</span><span class="dot">&middot;</span>
+      <span>Wet Blending</span><span class="dot">&middot;</span>
+      <span>Object-Source Lighting</span><span class="dot">&middot;</span>
+      <span>Non-Metallic Metal</span><span class="dot">&middot;</span>
+      <span>Pigment Weathering</span><span class="dot">&middot;</span>
+      <span>Matte Varnish</span><span class="dot">&middot;</span>
+      <span>Zenithal Priming</span><span class="dot">&middot;</span>
+      <span>Wet Blending</span><span class="dot">&middot;</span>
+      <span>Object-Source Lighting</span><span class="dot">&middot;</span>
+      <span>Non-Metallic Metal</span><span class="dot">&middot;</span>
+      <span>Pigment Weathering</span><span class="dot">&middot;</span>
+      <span>Matte Varnish</span><span class="dot">&middot;</span>
+    </div>
+  </div>
+
+  <section id="gallery">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="section-eyebrow"><svg class="eyebrow-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#star-mark"></use></svg>Selected work</span>
+        <h2>Gallery</h2>
+        <p>Photography in progress — the studies below stand in for finished shots while the real set is being lit and photographed. Open any piece for the technique, the time it took, and a note on how it was painted.</p>
+      </div>
+      <div class="gallery-grid">
+
+        <article class="card">
+          <button type="button" class="card-trigger" data-modal-key="gallery-0" aria-haspopup="dialog">
+            <span class="card-art art-1 tilt is-landscape" aria-hidden="true">
+              <span class="card-art-inner"></span>
+              <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+              <span class="card-index">01 / 06</span>
+              <span class="card-placeholder-mark">Photo placeholder</span>
+            </span>
+            <span class="card-caption">
+              <span class="name">Cadian Command Squad</span>
+              <span class="meta">Astra Militarum · Infantry</span>
+              <span class="card-cue">Process notes <span class="arrow" aria-hidden="true">&rarr;</span></span>
+            </span>
+          </button>
+        </article>
+
+        <article class="card">
+          <button type="button" class="card-trigger" data-modal-key="gallery-1" aria-haspopup="dialog">
+            <span class="card-art art-2 tilt" aria-hidden="true">
+              <span class="card-art-inner"></span>
+              <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+              <span class="card-index">02 / 06</span>
+              <span class="card-placeholder-mark">Photo placeholder</span>
+            </span>
+            <span class="card-caption">
+              <span class="name">Bloodletter Vanguard</span>
+              <span class="meta">Khorne · Daemons</span>
+              <span class="card-cue">Process notes <span class="arrow" aria-hidden="true">&rarr;</span></span>
+            </span>
+          </button>
+        </article>
+
+        <article class="card">
+          <button type="button" class="card-trigger" data-modal-key="gallery-2" aria-haspopup="dialog">
+            <span class="card-art art-3 tilt is-landscape" aria-hidden="true">
+              <span class="card-art-inner"></span>
+              <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+              <span class="card-index">03 / 06</span>
+              <span class="card-placeholder-mark">Photo placeholder</span>
+            </span>
+            <span class="card-caption">
+              <span class="name">Kasrkin Recon Team</span>
+              <span class="meta">Astra Militarum · Elites</span>
+              <span class="card-cue">Process notes <span class="arrow" aria-hidden="true">&rarr;</span></span>
+            </span>
+          </button>
+        </article>
+
+        <article class="card">
+          <button type="button" class="card-trigger" data-modal-key="gallery-3" aria-haspopup="dialog">
+            <span class="card-art art-4 tilt" aria-hidden="true">
+              <span class="card-art-inner"></span>
+              <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+              <span class="card-index">04 / 06</span>
+              <span class="card-placeholder-mark">Photo placeholder</span>
+            </span>
+            <span class="card-caption">
+              <span class="name">Skarr's Reckoning</span>
+              <span class="meta">Khorne · Hero</span>
+              <span class="card-cue">Process notes <span class="arrow" aria-hidden="true">&rarr;</span></span>
+            </span>
+          </button>
+        </article>
+
+        <article class="card">
+          <button type="button" class="card-trigger" data-modal-key="gallery-4" aria-haspopup="dialog">
+            <span class="card-art art-5 tilt is-landscape" aria-hidden="true">
+              <span class="card-art-inner"></span>
+              <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+              <span class="card-index">05 / 06</span>
+              <span class="card-placeholder-mark">Photo placeholder</span>
+            </span>
+            <span class="card-caption">
+              <span class="name">Basilisk, Weathered</span>
+              <span class="meta">Astra Militarum · Armor</span>
+              <span class="card-cue">Process notes <span class="arrow" aria-hidden="true">&rarr;</span></span>
+            </span>
+          </button>
+        </article>
+
+        <article class="card">
+          <button type="button" class="card-trigger" data-modal-key="gallery-5" aria-haspopup="dialog">
+            <span class="card-art art-6 tilt" aria-hidden="true">
+              <span class="card-art-inner"></span>
+              <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+              <span class="card-index">06 / 06</span>
+              <span class="card-placeholder-mark">Photo placeholder</span>
+            </span>
+            <span class="card-caption">
+              <span class="name">Skullreaper Line</span>
+              <span class="meta">Khorne · Warband</span>
+              <span class="card-cue">Process notes <span class="arrow" aria-hidden="true">&rarr;</span></span>
+            </span>
+          </button>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="diorama">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="section-eyebrow"><svg class="eyebrow-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#star-mark"></use></svg>Beyond the single model</span>
+        <h2>Diorama &amp; environment studies</h2>
+        <p>Squads and heroes are most of the bench time, but the same process scales up to a full scene — basing, backdrop, and lighting built to match the miniatures rather than added as an afterthought.</p>
+      </div>
+      <div class="diorama-layout">
+        <!-- Real placeholder photo of an actual finished diorama scene
+             (shared with the hero background), not final site photography.
+             No display-case frame to crop around here — see .diorama-frame
+             comment above for how the crop/vignette is actually handled
+             for this image. -->
+        <div class="diorama-frame tilt reveal" style="--i: 0;">
+          <img src="assets/diorama_2.jpg" alt="Diorama placeholder photo: a yellow-armored miniature with sword and shield facing off against a blue mech-walker, a bright weapon-blast effect lighting the scene between them, on a rubble and rock base. Placeholder photography, not final site photography.">
+          <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+          <span class="diorama-tag" aria-hidden="true">Photo placeholder</span>
+        </div>
+        <div class="diorama-body reveal" style="--i: 1;">
+          <span class="meta">Environment study · Astra Militarum vs. daemon incursion</span>
+          <h3>Built like a squad, staged like a scene</h3>
+          <p>
+            The rock ledge is carved and layered the same way weathering
+            gets built up on armor: several thin passes rather than one
+            heavy one, so the transitions between materials read as
+            natural instead of applied.
+          </p>
+          <p>
+            The cloud backdrop is painted in translucent layers behind the
+            display glass, lit to throw real object-source light onto the
+            models in front of it, so the OSL on the miniatures and the
+            backdrop's glow are doing the same job from two directions.
+          </p>
+          <dl class="modal-facts">
+            <div>
+              <dt>Technique</dt>
+              <dd>Layered basing, OSL backdrop, freehand weathering</dd>
+            </div>
+            <div>
+              <dt>Time invested</dt>
+              <dd>~45 hours, full scene</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="section-eyebrow"><svg class="eyebrow-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#star-mark"></use></svg>Method</span>
+        <h2>Same five steps, every time</h2>
+        <p>Nothing about the process is secret. It's the same order whether it's one hero model or a forty-model horde — just repeated more times.</p>
+      </div>
+      <ol class="steps-list">
+        <li class="step reveal" style="--i: 0;">
+          <span class="step-num">01</span>
+          <h3 class="step-title">Prime</h3>
+          <p class="step-desc">Zenithal, black to grey, so the value map already exists before any color goes on.</p>
+        </li>
+        <li class="step reveal" style="--i: 1;">
+          <span class="step-num">02</span>
+          <h3 class="step-title">Base coat</h3>
+          <p class="step-desc">Flat, even coverage in the true color. No highlights yet — just committing to the palette.</p>
+        </li>
+        <li class="step reveal" style="--i: 2;">
+          <span class="step-num">03</span>
+          <h3 class="step-title">Layer &amp; blend</h3>
+          <p class="step-desc">Wet-blend or thin layered highlights built up from the base, worked while the edges are still workable.</p>
+        </li>
+        <li class="step reveal" style="--i: 3;">
+          <span class="step-num">04</span>
+          <h3 class="step-title">Wash &amp; weather</h3>
+          <p class="step-desc">Recess shade first, then chipping, pigment, and rust — only where wear would actually happen.</p>
+        </li>
+        <li class="step reveal" style="--i: 4;">
+          <span class="step-num">05</span>
+          <h3 class="step-title">Seal &amp; varnish</h3>
+          <p class="step-desc">Matte or satin coat locks the blend in and makes the model safe to actually put on a table.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Reliquary band: the page's one deliberately dark, heavy moment,
+       between Process and Pricing — a museum-placard band rather than a
+       full dark-mode repaint. See the .reliquary-band CSS comment for the
+       contrast math. -->
+  <div class="reliquary-band">
+    <svg class="reliquary-tracery" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+      <title>Gothic tracery backdrop</title>
+      <rect width="400" height="200" fill="url(#gothic-tracery)"></rect>
+    </svg>
+    <div class="reliquary-embers" id="reliquaryEmbers" aria-hidden="true"></div>
+    <div class="reliquary-rule reliquary-rule-top" aria-hidden="true"></div>
+    <div class="wrap reliquary-content reveal">
+      <svg class="emblem-mark reliquary-emblem" viewBox="0 0 200 150" focusable="false"><title>Heraldic eagle mark</title><use href="#eagle-emblem"></use></svg>
+      <p class="reliquary-placard">Slow paint. Sharp edges. No shortcuts.</p>
+    </div>
+    <div class="reliquary-rule reliquary-rule-bottom" aria-hidden="true"></div>
+  </div>
+
+  <!-- Pricing anchors below are invented ballpark placeholders for this
+       comparison mockup, not numbers Dave has approved — they exist to
+       show the layout/tone a real pricing guide would take. -->
+  <section id="pricing">
+    <div class="wrap">
+      <div class="section-divider" aria-hidden="true">
+        <svg class="emblem-mark" viewBox="0 0 200 150" focusable="false"><title>Heraldic eagle mark</title><use href="#eagle-emblem"></use></svg>
+      </div>
+      <div class="section-head reveal">
+        <span class="section-eyebrow"><svg class="eyebrow-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#star-mark"></use></svg>Investment</span>
+        <h2>What a commission runs</h2>
+        <p>Rough anchors, not a quote. Actual scope always gets discussed before anything is booked. Model complexity, count, and finish level all move the number.</p>
+      </div>
+      <div class="pricing-grid">
+        <article class="pricing-card tier-1 tilt reveal" style="--i: 0;">
+          <span class="pricing-eyebrow">Tier 01</span>
+          <h3>Tabletop Ready</h3>
+          <span class="pricing-amount">$40&ndash;70 <span class="unit">/ model</span></span>
+          <p class="pricing-desc">Clean three-color layering, based, and varnished. Reads well at arm's length across the table.</p>
+          <ul class="pricing-list">
+            <li>Base coat, wash, edge highlight</li>
+            <li>Squad-consistent palette</li>
+            <li>Matte varnish, table-safe</li>
+          </ul>
+        </article>
+        <article class="pricing-card tier-2 tilt reveal" style="--i: 1;">
+          <span class="pricing-eyebrow">Tier 02</span>
+          <h3>Display Quality</h3>
+          <span class="pricing-amount">$90&ndash;160 <span class="unit">/ model</span></span>
+          <p class="pricing-desc">Full wet-blending, NMM or OSL where the model calls for it, and weathering built up in passes.</p>
+          <ul class="pricing-list">
+            <li>Wet-blended highlights</li>
+            <li>NMM / OSL as appropriate</li>
+            <li>Pigment weathering, freehand trim</li>
+          </ul>
+        </article>
+        <article class="pricing-card tier-3 tilt reveal" style="--i: 2;">
+          <svg class="pricing-tracery" viewBox="0 0 120 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><title>Gothic tracery backdrop</title><rect width="120" height="160" fill="url(#gothic-tracery)"></rect></svg>
+          <svg class="pricing-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><title>Ornate reliquary frame, centerpiece tier</title><use href="#filigree-frame"></use></svg>
+          <svg class="pricing-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><title>Centerpiece tier mark</title><use href="#star-mark"></use></svg>
+          <span class="pricing-eyebrow">Tier 03</span>
+          <h3>Centerpiece &amp; Diorama</h3>
+          <span class="pricing-amount">$250+ <span class="unit">custom quote</span></span>
+          <p class="pricing-desc">Hero models, unit centerpieces, or full environment builds like the study above. Scoped individually.</p>
+          <ul class="pricing-list">
+            <li>Freehand heraldry, conversions</li>
+            <li>Custom basing or full diorama</li>
+            <li>Scoped and quoted before booking</li>
+          </ul>
+        </article>
+      </div>
+      <!-- Contrast: .pricing-amount is var(--accent) on var(--bg-raised)
+           (#7a2b2b on #e5e8e8, V4.3 cool-grey token) ~7.72:1 computed —
+           comfortably past the 3:1 large-text floor and the same
+           accent/light-bg pairing this file already relies on elsewhere
+           (~8.3:1 on --bg). -->
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="wrap about">
+      <div class="about-portrait tilt reveal" role="img" aria-label="Abstract portrait placeholder in warm brass and red tones"></div>
+      <div class="about-body reveal" style="--i: 1;">
+        <div class="section-head" style="margin-bottom: 0;">
+          <span class="section-eyebrow"><svg class="eyebrow-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#star-mark"></use></svg>About</span>
+          <h2>Dave</h2>
+        </div>
+        <p>
+          Dave has been painting miniatures for about nine years now, mostly
+          late at night, mostly one squad at a time. Two armies get most of
+          the bench time: <strong>Astra Militarum</strong>, painted patient
+          and weathered, and <strong>Khorne</strong>, painted loud on purpose.
+        </p>
+        <p>
+          The kit hasn't changed much in years: a synthetic size 1 and size 0
+          for most of a model, an embarrassing number of decade-old
+          drybrushes reserved just for weathering, and a wet palette that's
+          outlived three different desks. Everything gets zenithal-primed
+          black to grey and finished with a matte varnish — that part isn't
+          optional.
+        </p>
+        <p>
+          Before any of that, he spent several years as an Army officer —
+          which is less a costume detail and more a habit that stuck: plan
+          the session, work the order of operations, don't call it finished
+          until it actually is.
+        </p>
+        <p>
+          When he's not at the painting desk he's usually on a rock face
+          somewhere, which explains the steady hands.
+        </p>
+        <blockquote class="quote-line">
+          "If a technique makes six models look one degree more like they
+          belong together, it's worth the extra hour. If it just makes one
+          model look fancier sitting alone on a shelf, that's probably ego,
+          not craft."
+        </blockquote>
+        <dl class="about-facts">
+          <div>
+            <dt>Focus</dt>
+            <dd>Astra Militarum, Khorne</dd>
+          </div>
+          <div>
+            <dt>Background</dt>
+            <dd>Prior U.S. Army officer</dd>
+          </div>
+          <div>
+            <dt>Painting since</dt>
+            <dd>~2017</dd>
+          </div>
+          <div>
+            <dt>Off the bench</dt>
+            <dd>Rock climbing</dd>
+          </div>
+          <div>
+            <dt>Go-to techniques</dt>
+            <dd>NMM, OSL, weathering</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section id="commission">
+    <svg class="commission-tracery" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+      <title>Gothic tracery backdrop</title>
+      <rect width="400" height="300" fill="url(#gothic-tracery)"></rect>
+    </svg>
+    <div class="wrap">
+      <div class="commission reveal">
+        <div>
+          <span class="section-eyebrow"><svg class="eyebrow-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#star-mark"></use></svg>Commissions</span>
+          <h2>Get a squad painted</h2>
+          <p style="color: var(--text-muted); margin-top: 0.9rem; max-width: 30rem;">
+            Taking on a limited number of commission slots. Send over what
+            you've got and roughly what you're after — tabletop-ready,
+            display-grade, or somewhere in between.
+          </p>
+          <ul class="commission-list">
+            <li>Tabletop, display, and diorama tiers</li>
+            <li>Astra Militarum and Khorne specialty, other factions considered</li>
+            <li>Turnaround discussed before any brush touches plastic</li>
+          </ul>
+          <ol class="inquiry-steps">
+            <li><span class="num">01</span>Inquiry</li>
+            <li><span class="num">02</span>Scope &amp; quote</li>
+            <li><span class="num">03</span>Paint &amp; ship</li>
+          </ol>
+        </div>
+        <div class="commission-panel">
+          <span class="label">Start an inquiry</span>
+          <a class="email-link" href="mailto:hello@nevergofulldave.example?subject=Commission%20Inquiry">hello@nevergofulldave.example</a>
+          <p class="commission-note">This is a mockup — the address above is a placeholder, not a live inbox.</p>
+        </div>
+      </div>
+
+      <div class="intake-brief reveal">
+        <h3>What to include in that first email</h3>
+        <p>None of this is a form to fill out, just a shortlist so a first reply can come back with a real scope and quote instead of a round of back-and-forth questions.</p>
+        <ul class="intake-grid">
+          <li class="intake-item">
+            <span class="intake-num">01</span>
+            <div>
+              <h4>Army / faction</h4>
+              <p>Astra Militarum, Khorne, or otherwise, plus any specific detachment or warband theme in mind.</p>
+            </div>
+          </li>
+          <li class="intake-item">
+            <span class="intake-num">02</span>
+            <div>
+              <h4>Model count</h4>
+              <p>How many models, and which kit or box if it's known, so scope and timeline can be estimated accurately.</p>
+            </div>
+          </li>
+          <li class="intake-item">
+            <span class="intake-num">03</span>
+            <div>
+              <h4>Reference images</h4>
+              <p>Box art, WIP shots, or a Pinterest board. Links are fine. Helps pin down palette and finish level up front.</p>
+            </div>
+          </li>
+          <li class="intake-item">
+            <span class="intake-num">04</span>
+            <div>
+              <h4>Timeline</h4>
+              <p>Any hard deadline (an event, a birthday), or flexible if there isn't one.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="notes">
+    <svg class="notes-paper" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <title>Aged-parchment paper grain</title>
+      <rect width="400" height="300" filter="url(#paper-grain)"></rect>
+    </svg>
+    <div class="wrap">
+      <div class="section-divider" aria-hidden="true">
+        <svg class="emblem-mark" viewBox="0 0 200 150" focusable="false"><title>Heraldic eagle mark</title><use href="#eagle-emblem"></use></svg>
+      </div>
+      <div class="section-head reveal">
+        <span class="section-eyebrow"><svg class="eyebrow-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#star-mark"></use></svg>Writing</span>
+        <h2>From the Bench</h2>
+        <p>Occasional notes on paint recipes, palette decisions, and whatever's currently drying. Early drafts — open one for the full note.</p>
+      </div>
+      <div class="notes-grid">
+        <article class="note-card reveal" style="--i: 0;">
+          <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+          <button type="button" class="note-trigger" data-modal-key="blog-0" aria-haspopup="dialog">
+            <span class="tag">Technique</span>
+            <span class="note-title">Getting brass to read as brass, not gold</span>
+            <span class="date">Draft &middot; unpublished</span>
+            <span class="note-cue">Read draft <span class="arrow" aria-hidden="true">&rarr;</span></span>
+          </button>
+        </article>
+        <article class="note-card reveal" style="--i: 1;">
+          <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+          <button type="button" class="note-trigger" data-modal-key="blog-1" aria-haspopup="dialog">
+            <span class="tag">Palette</span>
+            <span class="note-title">A working red-to-brown ratio for Khorne trim</span>
+            <span class="date">Draft &middot; unpublished</span>
+            <span class="note-cue">Read draft <span class="arrow" aria-hidden="true">&rarr;</span></span>
+          </button>
+        </article>
+        <article class="note-card reveal" style="--i: 2;">
+          <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+          <button type="button" class="note-trigger" data-modal-key="blog-2" aria-haspopup="dialog">
+            <span class="tag">Field notes</span>
+            <span class="note-title">What weathering pigment survives a climbing trip</span>
+            <span class="date">Draft &middot; unpublished</span>
+            <span class="note-cue">Read draft <span class="arrow" aria-hidden="true">&rarr;</span></span>
+          </button>
+        </article>
+        <article class="note-card reveal" style="--i: 3;">
+          <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+          <button type="button" class="note-trigger" data-modal-key="blog-3" aria-haspopup="dialog">
+            <span class="tag">Basing</span>
+            <span class="note-title">Building a rock ledge base that doesn't fight the miniature</span>
+            <span class="date">Draft &middot; unpublished</span>
+            <span class="note-cue">Read draft <span class="arrow" aria-hidden="true">&rarr;</span></span>
+          </button>
+        </article>
+        <article class="note-card reveal" style="--i: 4;">
+          <svg class="card-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#corner-frame"></use></svg>
+          <button type="button" class="note-trigger" data-modal-key="blog-4" aria-haspopup="dialog">
+            <span class="tag">Kit</span>
+            <span class="note-title">The wet palette that's outlived three desks</span>
+            <span class="date">Draft &middot; unpublished</span>
+            <span class="note-cue">Read draft <span class="arrow" aria-hidden="true">&rarr;</span></span>
+          </button>
+        </article>
+      </div>
+      <div class="notes-archive reveal" style="--i: 5;">
+        <button type="button" class="btn btn-outline" disabled aria-describedby="archiveNote">View full archive</button>
+        <p class="archive-note" id="archiveNote">Archive page isn't built yet. This is a placeholder for where post history will eventually live.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-text">
+      <span class="copyright">&copy; 2026 Never Go Full Dave. All rights reserved.</span>
+      <span class="credit">Background topographic map: Pearson Scott Foresman, public domain, via Wikimedia Commons.</span>
+    </div>
+    <a class="social-link" href="#" aria-label="Never Go Full Dave on Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" role="img" aria-hidden="true">
+        <title>Instagram</title>
+        <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <circle cx="17.3" cy="6.7" r="1"></circle>
+      </svg>
+    </a>
+  </div>
+</footer>
+
+<!-- Shared modal: content is populated per-trigger from the modalContent map
+     in the script below, rather than repeating nine near-identical dialogs. -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" id="modalPanel" tabindex="-1">
+    <button type="button" class="modal-close" id="modalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <title>Close</title>
+        <path d="M6 6 L18 18 M18 6 L6 18" stroke-linecap="round" />
+      </svg>
+    </button>
+    <span class="modal-eyebrow" id="modalEyebrow"></span>
+    <h3 id="modalTitle"></h3>
+    <p class="modal-meta" id="modalMeta"></p>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function prefersReducedMotion() {
+      return reduceMotionQuery.matches;
+    }
+
+    // --- Clip-path staggered reveal for gallery cards ---
+    var cards = Array.prototype.slice.call(document.querySelectorAll('#gallery .card'));
+
+    if (prefersReducedMotion()) {
+      cards.forEach(function (card) {
+        card.classList.add('is-visible');
+      });
+    } else if ('IntersectionObserver' in window) {
+      var revealed = false;
+
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && !revealed) {
+            revealed = true;
+            cards.forEach(function (card, i) {
+              setTimeout(function () {
+                card.classList.add('is-visible');
+              }, i * 90);
+            });
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.15 });
+
+      var gallerySection = document.getElementById('gallery');
+      if (gallerySection) observer.observe(gallerySection);
+    } else {
+      cards.forEach(function (card) { card.classList.add('is-visible'); });
+    }
+
+    // --- Subtle scroll-linked color temperature shift ---
+    if (!prefersReducedMotion()) {
+      var ticking = false;
+
+      function updateWarmth() {
+        var doc = document.documentElement;
+        var scrollable = doc.scrollHeight - doc.clientHeight;
+        var progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+        // Nudge hue+saturation warmth very slightly from top (cool) to bottom (warm).
+        var warmth = (progress * 14).toFixed(2);
+        doc.style.setProperty('--warmth', warmth);
+        ticking = false;
+      }
+
+      window.addEventListener('scroll', function () {
+        if (!ticking) {
+          window.requestAnimationFrame(updateWarmth);
+          ticking = true;
+        }
+      }, { passive: true });
+
+      updateWarmth();
+    }
+
+    // --- Topographic line-draw: animate contour paths in on load ---
+    (function drawTopo() {
+      var paths = Array.prototype.slice.call(document.querySelectorAll('.hero-topo path'));
+      if (!paths.length) return;
+
+      if (prefersReducedMotion()) {
+        paths.forEach(function (path) {
+          path.style.strokeDasharray = 'none';
+          path.style.strokeDashoffset = '0';
+        });
+        return;
+      }
+
+      paths.forEach(function (path, i) {
+        var length = path.getTotalLength();
+        path.style.strokeDasharray = length;
+        path.style.strokeDashoffset = length;
+        path.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(0.16, 1, 0.3, 1) ' + (i * 140) + 'ms';
+      });
+
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          paths.forEach(function (path) {
+            path.style.strokeDashoffset = '0';
+          });
+        });
+      });
+
+      // Once the longest draw-in transition has finished, hand off to the
+      // slow ambient drift defined in CSS (.hero-topo.is-drifting).
+      var longestDraw = 1600 + (paths.length - 1) * 140;
+      var topoEl = document.querySelector('.hero-topo');
+      if (topoEl) {
+        setTimeout(function () {
+          topoEl.classList.add('is-drifting');
+        }, longestDraw + 100);
+      }
+    })();
+
+    // --- Scroll progress bar ---
+    (function scrollProgress() {
+      var bar = document.getElementById('scrollProgressBar');
+      if (!bar) return;
+
+      var ticking = false;
+
+      function update() {
+        var doc = document.documentElement;
+        var scrollable = doc.scrollHeight - doc.clientHeight;
+        var progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+        bar.style.width = (Math.min(1, Math.max(0, progress)) * 100).toFixed(2) + '%';
+        ticking = false;
+      }
+
+      window.addEventListener('scroll', function () {
+        if (!ticking) {
+          window.requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+
+      window.addEventListener('resize', update, { passive: true });
+      update();
+    })();
+
+    // --- Nav scrollspy: highlight the current section's link ---
+    (function scrollspy() {
+      var navLinks = Array.prototype.slice.call(document.querySelectorAll('nav[aria-label="Primary"] a[href^="#"]'));
+      if (!navLinks.length || !('IntersectionObserver' in window)) return;
+
+      var linkByHash = {};
+      navLinks.forEach(function (link) {
+        linkByHash[link.getAttribute('href')] = link;
+      });
+
+      var sections = navLinks
+        .map(function (link) { return document.getElementById(link.getAttribute('href').slice(1)); })
+        .filter(Boolean);
+
+      var spyObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          var link = linkByHash['#' + entry.target.id];
+          if (!link) return;
+          if (entry.isIntersecting) {
+            navLinks.forEach(function (l) { l.classList.remove('is-current'); });
+            link.classList.add('is-current');
+          }
+        });
+      }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+
+      sections.forEach(function (section) { spyObserver.observe(section); });
+    })();
+
+    // --- Generic reveal-on-scroll (section heads, steps, cards, etc.) ---
+    (function revealOnScroll() {
+      var items = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+      if (!items.length) return;
+
+      if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+        items.forEach(function (item) { item.classList.add('is-visible'); });
+        return;
+      }
+
+      var revealObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      items.forEach(function (item) { revealObserver.observe(item); });
+    })();
+
+    // --- Pointer tilt for gallery/pricing cards and the diorama frame ---
+    (function pointerTilt() {
+      var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      if (prefersReducedMotion() || !canHover) return;
+
+      var tiltEls = Array.prototype.slice.call(document.querySelectorAll('.tilt'));
+
+      tiltEls.forEach(function (el) {
+        el.addEventListener('pointerenter', function () {
+          el.classList.add('is-active');
+        });
+
+        el.addEventListener('pointermove', function (e) {
+          var rect = el.getBoundingClientRect();
+          var x = (e.clientX - rect.left) / rect.width - 0.5;
+          var y = (e.clientY - rect.top) / rect.height - 0.5;
+          el.style.setProperty('--tx', (x * 2).toFixed(3));
+          el.style.setProperty('--ty', (y * 2).toFixed(3));
+        });
+
+        el.addEventListener('pointerleave', function () {
+          el.classList.remove('is-active');
+          el.style.setProperty('--tx', 0);
+          el.style.setProperty('--ty', 0);
+        });
+      });
+    })();
+
+    // --- Magnetic hover for CTA buttons ---
+    // V4: upgraded from "reacts once the pointer is already over the
+    // button" (V3) to true proximity magnetism — the button starts
+    // pulling toward the cursor before the pointer actually reaches it,
+    // matching the technique described in docs/reference/visual-mockdraft-
+    // ideas.md ("element subtly translates toward the cursor within a
+    // small radius... clamped and eased back to center on mouseleave").
+    // Listens on the document rather than per-button so proximity can be
+    // measured before the cursor enters the element's own box.
+    (function magneticButtons() {
+      var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      if (prefersReducedMotion() || !canHover) return;
+
+      var MAGNET_RADIUS = 120; // px: pull starts within this distance of the button's center
+      var buttons = Array.prototype.slice.call(document.querySelectorAll('.btn'));
+      if (!buttons.length) return;
+
+      var ticking = false;
+      var pointerX = -9999;
+      var pointerY = -9999;
+
+      function update() {
+        buttons.forEach(function (btn) {
+          var rect = btn.getBoundingClientRect();
+          var cx = rect.left + rect.width / 2;
+          var cy = rect.top + rect.height / 2;
+          var dx = pointerX - cx;
+          var dy = pointerY - cy;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < MAGNET_RADIUS) {
+            var pull = 1 - dist / MAGNET_RADIUS;
+            btn.style.transform = 'translate(' + (dx * 0.35 * pull).toFixed(1) + 'px, ' + (dy * 0.35 * pull).toFixed(1) + 'px)';
+          } else {
+            btn.style.transform = '';
+          }
+        });
+        ticking = false;
+      }
+
+      document.addEventListener('pointermove', function (e) {
+        pointerX = e.clientX;
+        pointerY = e.clientY;
+        if (!ticking) {
+          window.requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+    })();
+
+    // --- Drifting particle layers: hero motes + reliquary embers ---
+    // Shared by .hero-motes (gold/gunmetal filings) and .reliquary-embers
+    // (V4.2's rust/gold ember drift) — same markup shape (a <span class="
+    // mote|ember"> per particle, positioned/timed via inline custom
+    // properties) and the same CSS keyframe (mote-rise) drives both, so one
+    // generator function covers both instead of duplicating the loop.
+    // Perf budget: each call is capped by its own count argument (22 for
+    // hero motes, 14 for reliquary embers — see call sites below), created
+    // once on load with no per-frame JS afterward (the animation runs on
+    // the compositor via the CSS keyframe), and skipped entirely under
+    // reduced motion so no elements are even created. Both layers are also
+    // paused via the visibilitychange handler further down when the tab is
+    // hidden.
+    function createDriftParticles(containerId, count, className, colors) {
+      if (prefersReducedMotion()) return;
+
+      var container = document.getElementById(containerId);
+      if (!container) return;
+
+      var frag = document.createDocumentFragment();
+
+      for (var i = 0; i < count; i++) {
+        var particle = document.createElement('span');
+        particle.className = className;
+        var size = (Math.random() * 2.5 + 1.5).toFixed(1) + 'px';
+        var left = (Math.random() * 100).toFixed(1) + '%';
+        var dx = (Math.random() * 80 - 40).toFixed(0) + 'px';
+        var dur = (Math.random() * 6 + 7).toFixed(1) + 's';
+        var delay = (Math.random() * 9).toFixed(1) + 's';
+        var color = colors[i % colors.length];
+
+        particle.style.setProperty('--ms', size);
+        particle.style.setProperty('--mx', left);
+        particle.style.setProperty('--mdx', dx);
+        particle.style.setProperty('--mdur', dur);
+        particle.style.setProperty('--mdelay', delay);
+        particle.style.setProperty('--mote-color', color);
+        frag.appendChild(particle);
+      }
+
+      container.appendChild(frag);
+    }
+
+    createDriftParticles('heroMotes', 22, 'mote', ['var(--gold-light)', 'var(--gold)', 'var(--gunmetal-light)']);
+    createDriftParticles('reliquaryEmbers', 14, 'ember', ['var(--gold)', 'var(--accent-deep)', 'var(--gold-light)']);
+
+    // --- Pause drifting particles while the tab is hidden ---
+    // Neither layer runs any per-frame JS (the CSS keyframe drives them via
+    // the compositor), so this is the only thing that needs to respond to
+    // visibilitychange — toggling animation-play-state costs nothing while
+    // hidden and avoids the particles running (invisibly) the whole time a
+    // background tab sits open.
+    document.addEventListener('visibilitychange', function () {
+      var playState = document.hidden ? 'paused' : 'running';
+      var particles = document.querySelectorAll('.mote, .ember');
+      for (var i = 0; i < particles.length; i++) {
+        particles[i].style.animationPlayState = playState;
+      }
+    });
+
+    // --- Hero parallax: photo + topo layers drift at slightly different
+    // scroll rates for a cheap depth cue. Both use the standalone
+    // `translate` CSS property (see the .hero-photo/.hero-topo comments),
+    // updated only while the hero is plausibly still in view so this never
+    // keeps computing for a page that's scrolled long past it. rAF-
+    // throttled same as the scroll-progress bar below, single shared
+    // listener rather than one per layer.
+    (function heroParallax() {
+      if (prefersReducedMotion()) return;
+
+      var photo = document.querySelector('.hero-photo');
+      var topo = document.querySelector('.hero-topo');
+      var heroEl = document.querySelector('.hero');
+      if (!heroEl || (!photo && !topo)) return;
+
+      var ticking = false;
+
+      function update() {
+        var heroHeight = heroEl.offsetHeight;
+        // Stop computing once scrolled well past the hero — cheap early-out
+        // rather than an IntersectionObserver for a value this trivial to
+        // derive from scrollY directly.
+        if (window.scrollY <= heroHeight * 1.5) {
+          if (photo) photo.style.setProperty('--parallax-photo', (window.scrollY * 0.12).toFixed(1) + 'px');
+          if (topo) topo.style.setProperty('--parallax-topo', (window.scrollY * 0.2).toFixed(1) + 'px');
+        }
+        ticking = false;
+      }
+
+      window.addEventListener('scroll', function () {
+        if (!ticking) {
+          window.requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+
+      update();
+    })();
+
+    // --- Modal system (shared dialog, content swapped per trigger) ---
+    // Gallery entries carry structured craft specifics (technique, rough
+    // time investment) plus a short quote in Dave's voice, rendered above
+    // the descriptive paragraphs. Blog entries just render paragraphs.
+    var modalContent = {
+      'gallery-0': {
+        eyebrow: 'Process notes',
+        title: 'Cadian Command Squad',
+        meta: 'Astra Militarum · Infantry',
+        technique: 'Wet-blending, edge highlighting',
+        time: '~14 hours, full five-model squad',
+        quote: "The officer goes first. Everyone under him has to read like he's already been in this uniform ten years — that's not something you can add at the end.",
+        body: [
+          "Command squads get painted in a strict order: the officer first, so every rank underneath reads relative to him.",
+          "Same muted olive base across all four models, same three-highlight structure — the only variation is trim color, kept to a single accent so the squad still reads as one unit at arm's length."
+        ]
+      },
+      'gallery-1': {
+        eyebrow: 'Process notes',
+        title: 'Bloodletter Vanguard',
+        meta: 'Khorne · Daemons',
+        technique: 'Layered glazing, object-source lighting (OSL)',
+        time: '~10 hours per model',
+        quote: "Everybody wants the daemon weapon to glow. Nobody wants to do four thin layers to get there. That's the whole trick — patience dressed up as a special effect.",
+        body: [
+          "Loud color, quiet technique. The red is built in four thin layers rather than one saturated coat.",
+          "It holds up better under a display case light than it looks like it should on a wet palette."
+        ]
+      },
+      'gallery-2': {
+        eyebrow: 'Process notes',
+        title: 'Kasrkin Recon Team',
+        meta: 'Astra Militarum · Elites',
+        technique: 'Non-metallic metal (NMM), edge highlighting',
+        time: '~16 hours, three-model team',
+        quote: "NMM on flat carapace armor is basically the whole reason to own a size 0 brush. Get the gradient wrong and it just looks painted grey instead of steel.",
+        body: [
+          "Painted the carapace armor with the same patience as chalking a route before pulling on.",
+          "Look at the whole model, plan the highlight order, don't rush the first move."
+        ]
+      },
+      'gallery-3': {
+        eyebrow: 'Process notes',
+        title: "Skarr's Reckoning",
+        meta: 'Khorne · Hero',
+        technique: 'Freehand heraldry, OSL, edge highlighting',
+        time: '~22 hours',
+        quote: "Centerpiece models get one indulgence. On this one it was the cloak — everything else is squad-recipe, disciplined. The cloak is where I let the brush have an opinion.",
+        body: [
+          "Centerpiece models get one indulgence: freehand on the cloak.",
+          "Everything else on this model follows the squad recipe — the cloak is the only place the brush gets to improvise."
+        ]
+      },
+      'gallery-4': {
+        eyebrow: 'Process notes',
+        title: 'Basilisk, Weathered',
+        meta: 'Astra Militarum · Armor',
+        technique: 'Weathering, pigment chipping, oil-wash streaking',
+        time: '~18 hours',
+        quote: "Weathering an armor piece is mostly restraint. Pigment goes where mud would actually collect and nowhere else — the third pass is always the one you regret.",
+        body: [
+          "Weathering an armor piece is mostly restraint — pigment goes where mud would actually collect and nowhere else.",
+          "Two passes of wash, one of dry pigment, then stop."
+        ]
+      },
+      'gallery-5': {
+        eyebrow: 'Process notes',
+        title: 'Skullreaper Line',
+        meta: 'Khorne · Warband',
+        technique: 'Wet-blending, freehand weathering, edge highlighting',
+        time: '~30 hours, six-model warband',
+        quote: "Six models painted as a unit, not six copies of the same model. Same base recipe, small variation in wear — so the line reads like it's actually been in a fight.",
+        body: [
+          "Six models painted as a unit rather than six models painted alike — same base recipe, small variation in wear and blood spatter.",
+          "So the line reads as a warband that's actually been in a fight, not six copies of the same miniature."
+        ]
+      },
+      'blog-0': {
+        eyebrow: 'Technique · Draft',
+        title: 'Getting brass to read as brass, not gold',
+        meta: 'Unpublished draft',
+        body: [
+          "Most “brass” on a tabletop miniature actually reads as gold, because gold is the easier value structure to fake — bright highlight, dark recess, done. Brass needs a middle value that gold skips entirely, or it just looks like cheap costume jewelry under a photo light.",
+          "The fix isn't a different paint, it's a different highlight count. Brass gets a muted mid-tone laid in before the metallic ever touches the model, then the metallic itself goes on thin enough that the mid-tone still shows through at the edges. Three read values, not two."
+        ]
+      },
+      'blog-1': {
+        eyebrow: 'Palette · Draft',
+        title: 'A working red-to-brown ratio for Khorne trim',
+        meta: 'Unpublished draft',
+        body: [
+          "Khorne trim goes muddy fast if the red-to-brown ratio drifts even a little toward brown — it stops reading as blood-and-brass and starts reading as rust. Too far the other way and it looks like a toy fire truck.",
+          "Roughly four parts red base to one part brown, glazed rather than mixed flat, has held up across a dozen models now. The brown does its job in the recesses only; everywhere else, the red is left alone to be loud."
+        ]
+      },
+      'blog-2': {
+        eyebrow: 'Field notes · Draft',
+        title: 'What weathering pigment survives a climbing trip',
+        meta: 'Unpublished draft',
+        body: [
+          "Brought a small travel kit of weathering pigments on a multi-day climbing trip, mostly to see if a painting habit and a packing list could coexist. Loose pigment powder did not survive contact with a crag bag — half of it ended up as a fine dust coating everything else.",
+          "Pre-mixed pigment in small screw-top pots traveled fine and applied exactly the same as it does at the bench. Lesson kept for next time: whatever's going in the pack gets sealed twice, not once."
+        ]
+      },
+      'blog-3': {
+        eyebrow: 'Basing · Draft',
+        title: "Building a rock ledge base that doesn't fight the miniature",
+        meta: 'Unpublished draft',
+        body: [
+          "A rock-ledge base reads as scenery instead of a plinth the moment its highest point stops competing with the miniature's own silhouette. Stack the tallest rock behind the model, not beside it, and the eye still lands on the paint job first.",
+          "Same layering logic as the model itself: dry-brush the ledge lighter than instinct says, then knock it back with a wash. A base that's fully resolved in its own right always ends up pulling focus."
+        ]
+      },
+      'blog-4': {
+        eyebrow: 'Kit · Draft',
+        title: "The wet palette that's outlived three desks",
+        meta: 'Unpublished draft',
+        body: [
+          "Same wet palette has moved across three different desks now, which says more about how a good one is built than any single paint on it. Sponge and paper get replaced; the tray and lid never do.",
+          "The only real rule: reseal it before stepping away for more than a few minutes. Paint held open on a wet palette forgives almost every other habit, but not that one."
+        ]
+      }
+    };
+
+    var overlay = document.getElementById('modalOverlay');
+    var panel = document.getElementById('modalPanel');
+    var closeBtn = document.getElementById('modalClose');
+    var eyebrowEl = document.getElementById('modalEyebrow');
+    var titleEl = document.getElementById('modalTitle');
+    var metaEl = document.getElementById('modalMeta');
+    var bodyEl = document.getElementById('modalBody');
+    var lastFocused = null;
+
+    function focusableEls() {
+      return Array.prototype.slice.call(
+        panel.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])')
+      );
+    }
+
+    function openModal(trigger) {
+      var key = trigger.getAttribute('data-modal-key');
+      var data = modalContent[key];
+      if (!data) return;
+
+      lastFocused = trigger;
+
+      eyebrowEl.textContent = data.eyebrow;
+      titleEl.textContent = data.title;
+      metaEl.textContent = data.meta;
+      bodyEl.innerHTML = '';
+
+      if (data.technique || data.time) {
+        var factsEl = document.createElement('dl');
+        factsEl.className = 'modal-facts';
+
+        if (data.technique) {
+          var techWrap = document.createElement('div');
+          var techDt = document.createElement('dt');
+          techDt.textContent = 'Technique';
+          var techDd = document.createElement('dd');
+          techDd.textContent = data.technique;
+          techWrap.appendChild(techDt);
+          techWrap.appendChild(techDd);
+          factsEl.appendChild(techWrap);
+        }
+
+        if (data.time) {
+          var timeWrap = document.createElement('div');
+          var timeDt = document.createElement('dt');
+          timeDt.textContent = 'Time invested';
+          var timeDd = document.createElement('dd');
+          timeDd.textContent = data.time;
+          timeWrap.appendChild(timeDt);
+          timeWrap.appendChild(timeDd);
+          factsEl.appendChild(timeWrap);
+        }
+
+        bodyEl.appendChild(factsEl);
+      }
+
+      if (data.quote) {
+        var quoteEl = document.createElement('blockquote');
+        quoteEl.className = 'quote-line';
+        quoteEl.textContent = '“' + data.quote + '”';
+        bodyEl.appendChild(quoteEl);
+      }
+
+      data.body.forEach(function (paragraph) {
+        var p = document.createElement('p');
+        p.textContent = paragraph;
+        bodyEl.appendChild(p);
+      });
+
+      overlay.hidden = false;
+      document.body.style.overflow = 'hidden';
+
+      if (prefersReducedMotion()) {
+        overlay.classList.add('is-open');
+      } else {
+        window.requestAnimationFrame(function () {
+          window.requestAnimationFrame(function () {
+            overlay.classList.add('is-open');
+          });
+        });
+      }
+
+      panel.focus();
+    }
+
+    function closeModal() {
+      if (overlay.hidden) return;
+
+      overlay.classList.remove('is-open');
+      document.body.style.overflow = '';
+
+      var finish = function () {
+        overlay.hidden = true;
+        if (lastFocused) lastFocused.focus();
+      };
+
+      if (prefersReducedMotion()) {
+        finish();
+      } else {
+        var handled = false;
+        overlay.addEventListener('transitionend', function onEnd(e) {
+          if (e.target !== overlay || handled) return;
+          handled = true;
+          overlay.removeEventListener('transitionend', onEnd);
+          finish();
+        });
+        // Fallback in case transitionend doesn't fire (e.g. tab backgrounded).
+        setTimeout(function () {
+          if (!handled && overlay.classList.contains('is-open') === false && overlay.hidden === false) {
+            handled = true;
+            finish();
+          }
+        }, 300);
+      }
+    }
+
+    document.querySelectorAll('[data-modal-key]').forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        openModal(trigger);
+      });
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (overlay.hidden) return;
+
+      if (e.key === 'Escape') {
+        closeModal();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        var focusable = focusableEls();
+        if (!focusable.length) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        } else if (document.activeElement === panel) {
+          e.preventDefault();
+          (e.shiftKey ? last : first).focus();
+        }
+      }
+    });
+  })();
+</script>
+</body>
+</html>

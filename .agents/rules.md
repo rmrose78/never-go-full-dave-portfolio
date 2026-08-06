@@ -7,10 +7,12 @@ Primary project rules and agent guidelines for this workspace. See [`AGY.md`](fi
 
 ## Pipeline & Workflows
 - `/1-grill-me` → `/2-to-prd` → `/3-to-issues` → `/4-tdd`
-- **Issue First**: Create a GitHub Issue (`gh issue create`) before pushing code.
-- **Dedicated Branch**: All work follows `<issue-number>-<slug>`. Never commit directly to `main`.
-- **STOP Before Merging**: Open PR (`gh pr create`) and stop ready for review. Never merge PRs into `main` without explicit developer instructions.
-- **Honor Commit Restraints**: Do not stage or commit if instructed "do not commit".
+- **Git PR & Auto-Merge Protocol**:
+  - Always create a GitHub Issue (`gh issue create`) before pushing code.
+  - Work on a dedicated branch (`<issue-number>-<slug>`).
+  - Open Pull Request (`gh pr create`) with summary of changes.
+  - Automatically merge PRs into `main` after automated verification passes.
+  - Respect explicit developer restraints when instructed not to commit or push.
 
 ## Agent Guidelines & Subagent Isolation
 - Run heavy visual and accessibility sweeps via isolated subagents (`invoke_subagent` with `Model: "flash"`).

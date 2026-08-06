@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Never Go Full Dave — Direction A V3 (Masterpiece Edition)</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Design Tokens ---------- */
+  :root {
+    --void: #080706;
+    --void-2: #100f0d;
+    --void-3: #181614;
+    --void-card: #141210;
+    --text: #ece9e2;
+    --text-muted: #a49f94;
+    --brass: #d4b265;
+    --brass-glow: rgba(212, 178, 101, 0.4);
+    --brass-dim: #8e7742;
+    --olive: #92a450;
+    --olive-bg: #21260e;
+    --olive-line: rgba(146, 164, 80, 0.4);
+    --ember: #ff6e4a;
+    --ember-glow: rgba(255, 110, 74, 0.4);
+    --red-bg: #240403;
+    --red-line: rgba(255, 110, 74, 0.4);
+    --signal: #6ee5cc;
+    --signal-glow: rgba(110, 229, 204, 0.5);
+    --signal-dim: rgba(110, 229, 204, 0.25);
+    --overlay-a: rgba(8, 7, 6, 0.82);
+    --overlay-b: rgba(8, 7, 6, 0.94);
+    --font-display: "Chakra Petch", system-ui, -apple-system, sans-serif;
+    --font-body: "Inter", system-ui, -apple-system, sans-serif;
+    --font-mono: "Space Mono", monospace;
+    --nav-h: 4.25rem;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--void);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .display {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0;
+  }
+
+  a { color: inherit; }
+  img, svg { display: block; max-width: 100%; }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip-link {
+    position: absolute;
+    top: -100%; left: 1rem;
+    background: var(--brass);
+    color: var(--void);
+    padding: 0.75rem 1.25rem;
+    z-index: 300;
+    font-weight: 700;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    border-radius: 0 0 4px 4px;
+    transition: top 0.2s ease;
+  }
+  .skip-link:focus { top: 0; }
+
+  :focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 80rem;
+    margin: 0 auto;
+    padding-inline: 1.25rem;
+  }
+
+  section { position: relative; padding-block: 5.5rem; }
+
+  /* ---------- Image Credit Tags ---------- */
+  .img-tag {
+    position: absolute;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: rgba(8, 7, 6, 0.85);
+    border: 1px solid rgba(236, 233, 226, 0.2);
+    padding: 0.3rem 0.55rem;
+    border-radius: 2px;
+    z-index: 6;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+  }
+  .img-tag--bl { left: 1rem; bottom: 1rem; }
+  .img-tag--br { right: 1rem; bottom: 1rem; }
+  .img-tag--tr { right: 1rem; top: 1rem; }
+  .img-tag--tl { left: 1rem; top: 1rem; }
+
+  /* ---------- Canvases ---------- */
+  #burst-canvas, #trail-canvas {
+    position: fixed; inset: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+  }
+  #burst-canvas { z-index: 40; }
+  #trail-canvas { z-index: 35; }
+
+  .auspex-reticle {
+    position: fixed;
+    top: 0; left: 0;
+    width: 42px; height: 42px;
+    margin: -21px 0 0 -21px;
+    pointer-events: none; z-index: 65;
+    color: var(--brass); opacity: 0;
+    transition: opacity 0.2s ease, color 0.15s ease, transform 0.06s ease-out;
+    will-change: transform;
+  }
+  .auspex-reticle.is-active { opacity: 0.9; }
+  .auspex-reticle.is-locked { color: var(--signal); }
+  .auspex-reticle svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 6px currentColor); }
+  
+  .telemetry-readout {
+    position: fixed; bottom: 1rem; left: 1rem;
+    z-index: 50;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--signal);
+    background: rgba(10, 9, 8, 0.8);
+    border: 1px solid var(--signal-dim);
+    padding: 0.35rem 0.65rem;
+    border-radius: 3px;
+    backdrop-filter: blur(6px);
+    pointer-events: none;
+    letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .telemetry-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--signal); box-shadow: 0 0 6px var(--signal);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  /* ---------- Topographic Contour Map Overlay ---------- */
+  .topo-mount { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+  .topo-svg { width: 100%; height: 100%; }
+  .topo-path { fill: none; stroke: var(--brass); opacity: 0.14; stroke-width: 1.2; }
+  .topo-label { font-family: var(--font-mono); font-size: 0.65rem; fill: var(--brass); opacity: 0.45; letter-spacing: 0.08em; }
+
+  /* ---------- Reliquary Granite Texture Overlays ---------- */
+  .granite-overlay {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.04; mix-blend-mode: overlay;
+    background-image: radial-gradient(var(--text) 1px, transparent 1px);
+    background-size: 8px 8px;
+  }
+
+  /* ---------- Navigation ---------- */
+  .site-nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100; height: var(--nav-h);
+    display: flex; align-items: center;
+    background: rgba(8, 7, 6, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(212, 178, 101, 0.2);
+  }
+  .site-nav .container {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .nav-brand-group { display: flex; align-items: center; gap: 0.75rem; }
+  .nav-brand {
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 1.15rem;
+    letter-spacing: 0.06em; text-decoration: none;
+    color: var(--text); white-space: nowrap;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .nav-brand span { color: var(--brass); text-shadow: 0 0 10px var(--brass-glow); }
+  .nav-brand-icon { width: 24px; height: 24px; flex: none; filter: drop-shadow(0 0 6px var(--brass-glow)); }
+
+  .morse-light {
+    width: 0.55rem; height: 0.55rem;
+    border-radius: 50%; background: var(--signal-dim);
+    box-shadow: 0 0 0 rgba(110, 229, 204, 0);
+    flex: none; transition: background 0.05s linear, box-shadow 0.05s linear;
+    cursor: help;
+  }
+  .morse-light.is-on {
+    background: var(--signal); box-shadow: 0 0 10px 2px var(--signal-glow);
+  }
+  .morse-light.is-steady {
+    background: var(--signal); box-shadow: 0 0 6px 1px var(--signal-dim);
+  }  /* ---------- Fixed Industrial Audio Widget (Bottom-Right) ---------- */
+  .industrial-audio-widget {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 120;
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    padding: 0.9rem 0.75rem 0.75rem; border-radius: 6px;
+    background: linear-gradient(150deg, #1c1815 0%, #0e0c0b 100%);
+    border: 1px solid rgba(212, 178, 101, 0.35);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.85), inset 0 1px 1px rgba(255,255,255,0.1), 0 0 15px rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    user-select: none;
+  }
+  .industrial-audio-widget::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.14;
+    background-image: repeating-linear-gradient(45deg, #000 0 2px, transparent 2px 6px);
+    border-radius: 5px;
+  }
+
+  .widget-screw {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: #5a4a35; border: 0.5px solid #2a2015; box-shadow: inset 0 1px 1px rgba(0,0,0,0.8);
+  }
+  .widget-screw--tl { top: 4px; left: 4px; }
+  .widget-screw--tr { top: 4px; right: 4px; }
+  .widget-screw--bl { bottom: 4px; left: 4px; }
+  .widget-screw--br { bottom: 4px; right: 4px; }
+
+  .widget-speaker {
+    color: var(--brass-dim); opacity: 0.75;
+    filter: drop-shadow(0 1px 2px #000); transition: all 0.3s ease;
+  }
+  .industrial-audio-widget.is-active .widget-speaker {
+    color: var(--brass); opacity: 1; filter: drop-shadow(0 0 8px var(--brass-glow));
+  }
+
+  /* Gloomy Abandoned Warehouse Flickering Light Bulb */
+  .warehouse-light-housing {
+    position: relative; width: 20px; height: 20px; border-radius: 50%;
+    background: #090807; border: 1.5px solid #3c3328;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.95);
+  }
+  .warehouse-light-bulb {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #8e1818;
+    box-shadow: 0 0 8px #991b1b, inset 0 0 3px #fca5a5;
+    animation: warehouseFlickerOff 3.5s ease-in-out infinite;
+  }
+  .industrial-audio-widget.is-active .warehouse-light-bulb {
+    background: #059669;
+    box-shadow: 0 0 12px #10b981, 0 0 22px rgba(16, 185, 129, 0.45), inset 0 0 3px #a7f3d0;
+    animation: warehouseFlickerOn 4.1s ease-in-out infinite;
+  }
+
+  /* Erratic power grid voltage fluctuation keyframes */
+  @keyframes warehouseFlickerOff {
+    0%, 100% { opacity: 0.85; filter: brightness(1); }
+    12% { opacity: 0.25; filter: brightness(0.3); }
+    14% { opacity: 0.95; filter: brightness(1.3); }
+    35% { opacity: 0.8; }
+    58% { opacity: 0.15; filter: brightness(0.2); }
+    60% { opacity: 0.9; }
+    62% { opacity: 0.35; }
+    64% { opacity: 1; }
+    88% { opacity: 0.7; }
+  }
+  @keyframes warehouseFlickerOn {
+    0%, 100% { opacity: 0.9; filter: brightness(1); }
+    18% { opacity: 0.3; filter: brightness(0.4); }
+    20% { opacity: 1; filter: brightness(1.4); }
+    42% { opacity: 0.85; }
+    68% { opacity: 0.1; filter: brightness(0.2); }
+    70% { opacity: 0.95; filter: brightness(1.25); }
+    72% { opacity: 0.35; }
+    74% { opacity: 1; }
+    92% { opacity: 0.8; }
+  }
+
+  /* Vertical Rusted Heavy Toggle Switch */
+  .vertical-rust-switch {
+    background: none; border: none; padding: 0; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; margin-top: 0.1rem;
+  }
+  .switch-housing {
+    position: relative; width: 22px; height: 42px;
+    background: linear-gradient(180deg, #110f0d, #221c17);
+    border: 1px solid #4a3e30; border-radius: 4px;
+    box-shadow: inset 0 2px 6px #000; display: flex; justify-content: center;
+  }
+  .switch-slot {
+    position: absolute; top: 4px; bottom: 4px; width: 4px;
+    background: #060504; border-radius: 2px;
+  }
+  .switch-lever {
+    position: absolute; width: 14px; height: 18px; border-radius: 3px;
+    background: linear-gradient(135deg, #7a6538, #4a3c22 60%, #2a2012);
+    border: 1px solid #9e8142;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.85), inset 0 1px 1px rgba(255,255,255,0.35);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.25s ease, border-color 0.25s ease;
+    transform: translateY(18px); /* OFF position (down) */
+  }
+  .industrial-audio-widget.is-active .switch-lever {
+    transform: translateY(4px); /* ON position (up) */
+    background: linear-gradient(135deg, var(--brass), #a88435 60%, #6e5420);
+    border-color: #f0d48d;
+    box-shadow: 0 0 10px rgba(212, 178, 101, 0.4), inset 0 1px 2px #fff;
+  }
+
+  .widget-label {
+    font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.08em;
+    color: var(--text-muted); text-transform: uppercase; margin-top: 0.15rem; font-weight: 700;
+  }
+  .industrial-audio-widget.is-active .widget-label {
+    color: #10b981; text-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  }
+
+  .audio-toggle {
+    background: rgba(20, 18, 16, 0.8);
+    border: 1px solid rgba(212, 178, 101, 0.3);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem; letter-spacing: 0.06em;
+    padding: 0.35rem 0.75rem; border-radius: 3px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    transition: all 0.2s ease;
+    min-width: 7.2rem; white-space: nowrap; flex: none;
+  }
+  .audio-toggle:hover, .audio-toggle.is-active {
+    color: var(--signal); border-color: var(--signal);
+    box-shadow: 0 0 10px var(--signal-dim);
+  }
+
+  .nav-toggle {
+    background: none; border: 1px solid rgba(212, 178, 101, 0.4);
+    color: var(--text); width: 2.75rem; height: 2.75rem;
+    border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .nav-toggle svg { width: 1.25rem; height: 1.25rem; }
+
+  .nav-menu {
+    display: none; flex-direction: column; gap: 0.25rem;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--void-2); padding: 0.75rem;
+    border-top: 1px solid rgba(212, 178, 101, 0.2);
+    list-style: none; margin: 0;
+  }
+  .nav-menu.is-open { display: flex; }
+  .nav-menu li { width: 100%; }
+
+  /* Static Nav Link Styling (Constant font-weight 600 prevents neighbor layout shifting) */
+  .nav-link {
+    position: relative; display: block; overflow: hidden;
+    padding: 0.65rem 1rem; text-decoration: none;
+    font-family: var(--font-display); font-size: 0.9rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transform: none !important; transition: none;
+  }
+  .nav-link::before {
+    content: ""; position: absolute; inset: 0;
+    border: 1px solid var(--brass); transform: scaleY(2); opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease; z-index: 2;
+  }
+  .nav-link::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, var(--brass), var(--ember));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.25s ease 0.1s; z-index: 0;
+  }
+  .nav-link span { position: relative; z-index: 1; transition: color 0.25s ease 0.1s; }
+  .nav-link:hover::before, .nav-link:focus-visible::before { transform: scaleY(1); opacity: 1; }
+  .nav-link:hover::after, .nav-link:focus-visible::after { transform: scaleX(1); }
+  .nav-link:hover span, .nav-link:focus-visible span { color: var(--void); }
+
+  @media (min-width: 900px) {
+    .nav-toggle { display: none; }
+    .nav-menu {
+      display: flex !important; flex-direction: row;
+      position: static; background: none; padding: 0; border: 0; gap: 0.4rem;
+    }
+  }
+
+  /* ---------- Hero Section ---------- */
+  .hero {
+    min-height: 100svh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding-top: calc(var(--nav-h) + 2rem); padding-bottom: 3.5rem;
+    position: relative; isolation: isolate; overflow: hidden;
+    background: var(--void);
+  }
+
+  .hero-photo {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("assets/diorama_2_DELETE.jpg");
+    background-repeat: no-repeat; background-size: cover; background-position: 50% 60%;
+    filter: brightness(0.95) contrast(1.05) saturate(1.1);
+  }
+
+  .hero-edge-fade {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(ellipse 85% 82% at 50% 48%, transparent 28%, rgba(8, 7, 6, 0.6) 65%, var(--void) 100%);
+  }
+
+  .hero-scrim {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 65% 55% at 50% 50%, rgba(8, 7, 6, 0.88) 0%, rgba(8, 7, 6, 0.58) 50%, transparent 80%),
+      radial-gradient(ellipse 80% 60% at 50% 15%, rgba(212, 178, 101, 0.18), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 85% 85%, rgba(255, 110, 74, 0.15), transparent 60%);
+  }
+
+  .cog-field { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .cog {
+    position: absolute; color: var(--brass); opacity: 0.12; transform-origin: 50% 50%;
+    filter: drop-shadow(0 0 8px var(--brass-glow));
+  }
+  .cog--a { width: 48rem; height: 48rem; right: -16rem; bottom: -18rem; animation: cogSpin 140s linear infinite; }
+  .cog--b { width: 26rem; height: 26rem; right: 8rem; bottom: -4rem; color: var(--olive); opacity: 0.15; animation: cogSpinReverse 90s linear infinite; }
+  @keyframes cogSpin { to { transform: rotate(360deg); } }
+  @keyframes cogSpinReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+
+  .ash-field { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+  .ash-mote {
+    position: absolute; bottom: -4%; width: 3px; height: 3px; border-radius: 50%;
+    background: var(--brass); box-shadow: 0 0 6px var(--brass); opacity: 0;
+    animation-name: ashRise; animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+  }
+  @keyframes ashRise {
+    0% { transform: translate(0, 0); opacity: 0; }
+    15% { opacity: 0.85; } 50% { opacity: 0.5; }
+    100% { transform: translate(var(--drift, 18px), -108vh); opacity: 0; }
+  }
+
+  .crt-overlay {
+    position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.04) 0px, rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px, transparent 3px
+    );
+    mix-blend-mode: overlay; animation: crtFlicker 7s ease-in-out infinite;
+  }
+  @keyframes crtFlicker { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } 65% { opacity: 0.65; } }
+
+  .hero-inner {
+    position: relative; z-index: 4; display: flex; flex-direction: column; align-items: center;
+  }
+
+  .emblem-wrap {
+    margin-bottom: 1.25rem; animation: breathe 6s ease-in-out infinite; transform-origin: center;
+    filter: drop-shadow(0 0 16px var(--brass-glow));
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.05) translateY(-4px); }
+  }
+
+  .boot-sequence {
+    font-family: var(--font-mono); font-size: clamp(0.7rem, 1.6vw, 0.85rem);
+    letter-spacing: 0.08em; color: var(--signal);
+    background: rgba(10, 14, 12, 0.7); border: 1px solid var(--signal-dim);
+    box-shadow: 0 0 15px var(--signal-dim); border-radius: 4px;
+    padding: 0.55rem 1rem; margin-bottom: 1.2rem;
+    min-height: 1.7em; min-width: 16rem; text-align: left; backdrop-filter: blur(6px);
+  }
+  .boot-sequence.is-empty { display: none; }
+  .boot-sequence::after { content: "_"; margin-left: 0.2em; animation: cursorBlink 0.9s steps(1) infinite; }
+  @keyframes cursorBlink { 50% { opacity: 0; } }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 9.5vw, 5.8rem); line-height: 1.02; font-weight: 700;
+    color: var(--text); display: inline-block; text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+  }
+  .hero-title .accent {
+    color: var(--brass);
+    background: linear-gradient(135deg, var(--brass), var(--ember));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .hero-warning {
+    display: inline-block; margin-top: 1rem; max-width: 38rem;
+    font-family: var(--font-mono); font-size: clamp(0.68rem, 1.4vw, 0.78rem);
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--signal);
+    background: rgba(110, 229, 204, 0.08); border: 1px solid var(--signal-dim);
+    padding: 0.35rem 0.85rem; border-radius: 3px;
+  }
+
+  .hero-tagline {
+    margin-top: 1.25rem; max-width: 38rem;
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem); color: var(--text);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+  }
+
+  .cta {
+    position: relative; display: inline-flex; align-items: center; gap: 0.75rem;
+    margin-top: 2.25rem; padding: 1.05rem 2.25rem;
+    background: linear-gradient(135deg, var(--brass), #b89345);
+    color: var(--void); font-family: var(--font-display);
+    font-weight: 700; font-size: 1rem; letter-spacing: 0.08em;
+    text-transform: uppercase; text-decoration: none; border-radius: 3px;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+    box-shadow: 0 4px 20px rgba(212, 178, 101, 0.25);
+  }
+  .cta:hover, .cta:focus-visible { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(212, 178, 101, 0.5); }
+  .cta svg { width: 1.15rem; height: 1.15rem; transition: transform 0.2s ease; }
+  .cta:hover svg { transform: translateX(4px); }
+
+  .purity-seal {
+    width: 2.3rem; height: 2.3rem; margin-top: 1.25rem; color: var(--brass);
+    opacity: 0; transform: scale(1.6); filter: drop-shadow(0 0 8px var(--brass-glow));
+  }
+  .purity-seal.is-stamped { animation: sealStamp 0.5s cubic-bezier(0.3, 1.6, 0.4, 1) forwards; }
+  @keyframes sealStamp {
+    0% { opacity: 0; transform: scale(1.7); } 55% { opacity: 1; transform: scale(0.92); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ---------- Section Headers & Rules ---------- */
+  .section-kicker {
+    font-family: var(--font-display); font-size: 0.82rem;
+    letter-spacing: 0.2em; color: var(--brass-dim); text-transform: uppercase;
+    margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .section-title {
+    font-size: clamp(1.9rem, 4.2vw, 2.75rem); margin-bottom: 1rem;
+    background: linear-gradient(180deg, #ffffff 0%, var(--text) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .section-lede { color: var(--text-muted); max-width: 42rem; margin-bottom: 2.5rem; font-size: 1.05rem; }
+
+  .chevron-rule {
+    height: 18px; margin-inline: auto; max-width: 80rem;
+    background-image:
+      linear-gradient(135deg, transparent 44%, var(--brass-dim) 44% 56%, transparent 56%),
+      linear-gradient(45deg, transparent 44%, var(--olive) 44% 56%, transparent 56%);
+    background-size: 30px 30px, 30px 30px; background-position: 0 0, 15px 0;
+    background-repeat: repeat-x; opacity: 0.35;
+  }
+
+  /* ---------- Gallery & Filter Tabs ---------- */
+  .gallery { background: linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%); }
+
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 2rem; }
+  .filter-btn {
+    background: rgba(20, 18, 16, 0.8); border: 1px solid rgba(212, 178, 101, 0.25);
+    color: var(--text-muted); font-family: var(--font-display); font-size: 0.85rem;
+    letter-spacing: 0.08em; text-transform: uppercase; padding: 0.55rem 1.15rem;
+    border-radius: 3px; cursor: pointer; transition: all 0.25s ease;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .filter-btn:hover, .filter-btn.is-active {
+    background: var(--brass); color: var(--void); border-color: var(--brass);
+    font-weight: 700; box-shadow: 0 4px 15px var(--brass-glow);
+  }
+  .filter-count {
+    font-family: var(--font-mono); font-size: 0.72rem;
+    background: rgba(8, 7, 6, 0.3); padding: 0.1rem 0.4rem; border-radius: 2px;
+  }
+
+  .gallery-grid {
+    position: relative; z-index: 2; columns: 1; column-gap: 1.5rem;
+  }
+  @media (min-width: 640px) { .gallery-grid { columns: 2; } }
+  @media (min-width: 1024px) { .gallery-grid { columns: 3; column-gap: 1.75rem; } }
+
+  .card {
+    all: unset; box-sizing: border-box; display: block; width: 100%;
+    margin-bottom: 1.5rem; cursor: pointer; text-align: left;
+    position: relative; border-radius: 6px; overflow: hidden;
+    border: 1px solid rgba(212, 178, 101, 0.2); isolation: isolate;
+    break-inside: avoid; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease;
+    background: var(--void-card);
+  }
+  .card.is-hidden { display: none; }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-4px) scale(1.015); border-color: var(--brass);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px var(--brass-glow);
+  }
+  .card--landscape { aspect-ratio: 3 / 2; }
+  .card--portrait { aspect-ratio: 2 / 3; }
+
+  .card-badge {
+    position: absolute; top: 0.75rem; left: 0.75rem;
+    font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); background: rgba(8, 7, 6, 0.85);
+    border: 1px solid rgba(236, 233, 226, 0.2); padding: 0.25rem 0.55rem;
+    border-radius: 2px; z-index: 2; pointer-events: none;
+  }
+  .card-caption {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 2rem 1.15rem 1.15rem;
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.88) 50%, rgba(0, 0, 0, 0.96));
+    z-index: 2;
+  }
+  .card-caption .name {
+    font-family: var(--font-display); font-size: 1.1rem; color: var(--text);
+    display: block; font-weight: 600;
+  }
+  .card-caption .faction {
+    font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+    display: block; margin-top: 0.2rem; font-family: var(--font-mono); color: var(--brass);
+  }
+
+  .card--am1 { background: linear-gradient(135deg, #2b2f1a 0%, #4b5320 45%, #1c2010 100%), repeating-linear-gradient(45deg, rgba(212,178,101,0.08) 0 2px, transparent 2px 9px); background-blend-mode: overlay; }
+  .card--am2 { background: radial-gradient(circle at 30% 20%, #5a6a2e, #21260e 70%), repeating-linear-gradient(115deg, rgba(236,233,226,0.06) 0 3px, transparent 3px 11px); background-blend-mode: overlay; }
+  .card--am3 { background: conic-gradient(from 210deg at 60% 40%, #3f4a1f, #92a450 30%, #21260e 60%, #3f4a1f); }
+  .card--kh1 { background: linear-gradient(150deg, #3a0303 0%, #6b0000 45%, #240403 100%), repeating-linear-gradient(60deg, rgba(212,178,101,0.08) 0 2px, transparent 2px 10px); background-blend-mode: overlay; }
+  .card--kh2 { background: radial-gradient(circle at 70% 30%, #8a0303, #240403 70%), repeating-linear-gradient(20deg, rgba(255,110,74,0.07) 0 3px, transparent 3px 12px); background-blend-mode: overlay; }
+  .card--kh3 { background: conic-gradient(from 40deg at 40% 60%, #240403, #ff6e4a 25%, #4a0505 55%, #240403); }
+
+  .card::before {
+    content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(236, 233, 226, 0.45) 50%, transparent 60%);
+    mix-blend-mode: overlay;
+  }
+  .card.is-active::before { animation: cardSweep 0.55s ease-out; }
+  @keyframes cardSweep {
+    0% { transform: translateX(-120%); opacity: 0; }
+    20% { opacity: 1; } 100% { transform: translateX(120%); opacity: 0; }
+  }
+
+  /* ---------- Specialties Section ---------- */
+  .specialties-section {
+    background: var(--void-2);
+    border-top: 1px solid rgba(212, 178, 101, 0.15);
+    border-bottom: 1px solid rgba(212, 178, 101, 0.15);
+  }
+  .spec-grid {
+    display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 2.5rem;
+  }
+  @media (min-width: 640px) { .spec-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .spec-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .spec-card {
+    background: var(--void-3);
+    border: 1px solid rgba(212, 178, 101, 0.2);
+    border-radius: 8px; padding: 1.75rem 1.25rem;
+    text-align: left; position: relative; overflow: hidden;
+  }
+  .spec-icon {
+    width: 2.5rem; height: 2.5rem; color: var(--brass); margin-bottom: 1rem;
+  }
+  .spec-card h3 { font-size: 1.15rem; color: var(--text); margin-bottom: 0.5rem; }
+  .spec-card p { color: var(--text-muted); font-size: 0.88rem; margin: 0; }
+
+  /* ---------- Artist Bio Section ---------- */
+  .about-section {
+    background: radial-gradient(ellipse 70% 60% at 20% 30%, rgba(146, 164, 80, 0.08), transparent 60%), var(--void);
+  }
+  .about-grid {
+    display: grid; grid-template-columns: 1fr; gap: 2.5rem; align-items: center;
+  }
+  @media (min-width: 768px) { .about-grid { grid-template-columns: 1fr 1.2fr; } }
+
+  .about-avatar-card {
+    background: var(--void-3);
+    border: 1px solid var(--olive-line);
+    border-radius: 8px; padding: 2rem; text-align: center;
+    position: relative; overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  }
+  .about-avatar-icon {
+    width: 5rem; height: 5rem; margin: 0 auto 1.25rem;
+    color: var(--brass); background: rgba(212, 178, 101, 0.1);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--brass);
+  }
+
+  /* ---------- Showcase Section ---------- */
+  .showcase {
+    position: relative; overflow: hidden;
+    background: linear-gradient(180deg, var(--void-2) 0%, var(--void) 100%);
+  }
+  .showcase-grid {
+    position: relative; z-index: 1;
+    display: grid; gap: 2.5rem; align-items: center;
+  }
+  @media (min-width: 768px) { .showcase-grid { grid-template-columns: 1.1fr 1fr; } }
+  
+  .showcase-frame {
+    position: relative; width: min(28rem, 100%);
+    aspect-ratio: 4 / 3.3; margin-inline: auto;
+    border-radius: 8px; overflow: hidden;
+    isolation: isolate; border: 1px solid var(--red-line);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(255, 110, 74, 0.2);
+  }
+  .showcase-frame img {
+    width: 100%; height: 100%; object-fit: cover; object-position: 50% 58%;
+    filter: saturate(1.1) contrast(1.05);
+  }
+  .showcase-tag-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
+  .showcase-tag {
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--signal); background: rgba(110, 229, 204, 0.08);
+    border: 1px solid var(--signal-dim); padding: 0.35rem 0.75rem; border-radius: 3px;
+    pointer-events: none;
+  }
+
+  /* ---------- Painting Standards & Tiers ---------- */
+  .pricing { background: var(--void); }
+  .pricing-grid {
+    display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 2rem;
+  }
+  @media (min-width: 640px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .tier-card {
+    position: relative; border: 1px solid rgba(212, 178, 101, 0.2);
+    border-radius: 8px; padding: 1.85rem 1.5rem;
+    background: linear-gradient(160deg, var(--void-2), var(--void-3));
+  }
+  .tier-kicker {
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--brass-dim); margin: 0 0 0.35rem;
+  }
+  .tier-name { font-size: 1.3rem; margin-bottom: 0.75rem; color: var(--text); }
+  .tier-price { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1.25rem; }
+  .tier-price .amount { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: var(--brass); }
+  .tier-features { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.65rem; }
+  .tier-features li { position: relative; padding-left: 1.2rem; color: var(--text-muted); font-size: 0.92rem; }
+  .tier-features li::before {
+    content: ""; position: absolute; left: 0; top: 0.5em;
+    width: 6px; height: 6px; background: var(--olive);
+    border-radius: 1px; transform: rotate(45deg);
+  }
+
+  .tier-card--centerpiece {
+    border-color: var(--red-line);
+    background:
+      linear-gradient(160deg, var(--overlay-a), var(--overlay-b)),
+      url("https://upload.wikimedia.org/wikipedia/commons/4/43/Metal_Work_Sparks.jpg");
+    background-size: cover; background-position: center;
+  }
+  .tier-card--centerpiece .tier-price .amount { color: var(--ember); }
+  .tier-card--centerpiece .tier-features li::before { background: var(--ember); }
+
+  /* ---------- Commission Interactive Intake Form ---------- */
+  .commission {
+    background: radial-gradient(ellipse 70% 60% at 80% 40%, rgba(255, 110, 74, 0.08), transparent 60%), var(--void-2);
+  }
+  .intake-wizard-card {
+    background: var(--void-card);
+    border: 1px solid rgba(212, 178, 101, 0.3);
+    border-radius: 8px; padding: 2.25rem;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.8), 0 0 25px rgba(212, 178, 101, 0.15);
+  }
+  .wizard-grid {
+    display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 1.5rem;
+  }
+  @media (min-width: 768px) { .wizard-grid { grid-template-columns: 1fr 1fr; } }
+
+  .form-group label {
+    display: block; font-family: var(--font-display); font-size: 0.85rem;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--brass); margin-bottom: 0.5rem;
+  }
+  .form-group select, .form-group input, .form-group textarea {
+    width: 100%; background: var(--void-3); border: 1px solid rgba(212, 178, 101, 0.3);
+    color: var(--text); padding: 0.75rem 0.9rem; border-radius: 4px;
+    font-family: var(--font-body); font-size: 0.95rem;
+  }
+  .form-group textarea { resize: vertical; min-height: 5.5rem; }
+
+  .mailto-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.65rem;
+    margin-top: 1.5rem; padding: 1.05rem 2.25rem; width: 100%;
+    border: 1px solid var(--ember); color: var(--ember); background: rgba(36, 4, 3, 0.5);
+    text-decoration: none; font-family: var(--font-display);
+    letter-spacing: 0.08em; text-transform: uppercase; font-size: 1rem; font-weight: 700;
+    border-radius: 4px; transition: all 0.25s ease; cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 110, 74, 0.2);
+  }
+  .mailto-btn:hover, .mailto-btn:focus-visible {
+    background: var(--ember); color: var(--void);
+    transform: translateY(-2px); box-shadow: 0 6px 30px var(--ember-glow);
+  }
+
+  /* ---------- Dispatches / Blog ---------- */
+  .post-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+  @media (min-width: 768px) { .post-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .post-card {
+    all: unset; box-sizing: border-box; display: block; width: 100%;
+    cursor: pointer; text-align: left; position: relative;
+    border: 1px solid rgba(212, 178, 101, 0.2); border-radius: 6px;
+    padding: 1.6rem; background: var(--void-2); color: var(--text);
+    transition: transform 0.25s ease, border-color 0.25s ease;
+  }
+  .post-card:hover, .post-card:focus-visible {
+    transform: translateY(-3px); border-color: var(--brass);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  }
+  .post-card .tag {
+    display: inline-block; font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--void); background: var(--brass);
+    padding: 0.2rem 0.55rem; border-radius: 2px; margin-bottom: 0.85rem; font-weight: 700;
+  }
+  .post-card h3 { font-size: 1.15rem; line-height: 1.35; color: var(--text); }
+  .post-card .read-more {
+    display: block; margin-top: 1rem; font-family: var(--font-mono);
+    font-size: 0.75rem; letter-spacing: 0.06em; color: var(--signal);
+  }
+
+  .archive-cta { margin-top: 2rem; text-align: center; }
+  .archive-btn {
+    background: var(--void-2); border: 1px solid var(--brass);
+    color: var(--brass); font-family: var(--font-display); font-size: 0.9rem;
+    letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+    padding: 0.85rem 1.85rem; border-radius: 4px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 0.6rem; transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(212, 178, 101, 0.15);
+  }
+  .archive-btn:hover {
+    background: var(--brass); color: var(--void);
+    box-shadow: 0 6px 25px var(--brass-glow); transform: translateY(-2px);
+  }
+
+  /* ---------- Footer ---------- */
+  .site-footer {
+    border-top: 1px solid rgba(212, 178, 101, 0.2);
+    padding-block: 3.5rem 3rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;
+  }
+  .footer-seal {
+    width: 48px; height: 48px; margin: 0 auto 1.25rem;
+    filter: drop-shadow(0 0 10px var(--brass-glow)); opacity: 0.85;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .footer-seal:hover { opacity: 1; transform: scale(1.08); }
+  .footer-social {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2.75rem; height: 2.75rem; border: 1px solid rgba(212, 178, 101, 0.35);
+    border-radius: 50%; margin-bottom: 1.25rem; text-decoration: none; color: var(--text);
+    transition: all 0.25s ease;
+  }
+  .footer-social:hover { border-color: var(--brass); color: var(--brass); box-shadow: 0 0 15px var(--brass-glow); }
+
+  /* ---------- Modals ---------- */
+  .modal {
+    border: none; padding: 0; background: transparent;
+    max-width: none; max-height: none; width: 100%; height: 100%; margin: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal:not([open]) { display: none; }
+  .modal::backdrop { background: rgba(8, 7, 6, 0.85); backdrop-filter: blur(8px); }
+  .modal-content {
+    position: relative; width: min(42rem, calc(100vw - 2.5rem));
+    max-height: calc(100svh - 4rem); overflow-y: auto;
+    background: var(--void-2); border: 1px solid var(--brass-dim);
+    border-radius: 8px; padding: 2.5rem 2rem 2rem;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 30px var(--brass-glow);
+  }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 2.25rem; height: 2.25rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(212, 178, 101, 0.3);
+    border-radius: 4px; color: var(--text); cursor: pointer;
+  }
+  .modal-close:hover { border-color: var(--brass); color: var(--brass); }
+
+  .archive-list-item {
+    padding: 1.1rem; border: 1px solid rgba(212, 178, 101, 0.2); border-radius: 6px;
+    margin-bottom: 0.85rem; background: var(--void-3); cursor: pointer; transition: all 0.2s ease;
+  }
+  .archive-list-item:hover { border-color: var(--brass); transform: translateX(4px); }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- Background Audio Element -->
+<audio id="bgAudio" loop preload="auto">
+  <source src="assets/music/eisenvater-industrial-techno-loop-energetic-beat-565842.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Navigation -->
+<nav class="site-nav" aria-label="Primary">
+  <div class="container">
+    <div class="nav-brand-group">
+      <a class="nav-brand" href="#hero">
+        <!-- Clean Iron Halo & Crossed Paintbrushes Studio Emblem -->
+        <svg class="nav-brand-icon" viewBox="0 0 32 32">
+          <defs>
+            <linearGradient id="navBrandGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#d4b265"/>
+              <stop offset="100%" stop-color="#ff6e4a"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="13" fill="none" stroke="url(#navBrandGrad)" stroke-width="1.8" stroke-dasharray="4 2"/>
+          <circle cx="16" cy="16" r="10" fill="none" stroke="#d4b265" stroke-width="1" opacity="0.6"/>
+          <path d="M16 1v4M16 27v4M1 16h4M27 16h4" stroke="url(#navBrandGrad)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="7" y1="25" x2="25" y2="7" stroke="url(#navBrandGrad)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="7" y1="7" x2="25" y2="25" stroke="url(#navBrandGrad)" stroke-width="1.8" stroke-linecap="round"/>
+          <polygon points="25,7 28,4 26,9" fill="#ff6e4a"/>
+          <polygon points="25,25 28,28 26,23" fill="#ff6e4a"/>
+        </svg>
+        Never Go Full <span>DAVE</span>
+      </a>
+      <span class="morse-light" id="morseLight" aria-hidden="true" title="Status light (NGFD in Morse code)"></span>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navMenu" aria-label="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Static Navigation Links (Zero font-weight width shift) -->
+    <ul class="nav-menu" id="navMenu">
+      <li><a class="nav-link" href="#gallery"><span>Gallery</span></a></li>
+      <li><a class="nav-link" href="#specialties"><span>Specialties</span></a></li>
+      <li><a class="nav-link" href="#pricing"><span>Standards</span></a></li>
+      <li><a class="nav-link" href="#commission"><span>Commission</span></a></li>
+      <li><a class="nav-link" href="#showcase"><span>Showcase</span></a></li>
+      <li><a class="nav-link" href="#about"><span>About</span></a></li>
+      <li><a class="nav-link" href="#dispatches"><span>Dispatches</span></a></li>
+    </ul>
+  </div>
+</nav>
+
+<canvas id="burst-canvas" aria-hidden="true"></canvas>
+<canvas id="trail-canvas" aria-hidden="true"></canvas>
+
+<!-- Auspex Reticle & Telemetry Overlay -->
+<div class="auspex-reticle" id="auspexReticle" aria-hidden="true">
+  <svg viewBox="0 0 42 42">
+    <path d="M3 11V4.5A1.5 1.5 0 0 1 4.5 3H11" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M31 3h6.5A1.5 1.5 0 0 1 39 4.5V11" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M39 31v6.5a1.5 1.5 0 0 1-1.5 1.5H31" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M11 39H4.5A1.5 1.5 0 0 1 3 37.5V31" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <circle cx="21" cy="21" r="2" fill="currentColor"/>
+  </svg>
+</div>
+
+<div class="telemetry-readout" id="telemetryReadout" aria-hidden="true">
+  <span class="telemetry-dot"></span>
+  <span id="telemetryText">TACTICAL HUD | POS: 0, 0 | STATUS: READY</span>
+</div>
+
+<main id="main">
+
+  <!-- Section 1: Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-photo" aria-hidden="true"></div>
+    <div class="hero-edge-fade" aria-hidden="true"></div>
+    <div class="hero-scrim" aria-hidden="true"></div>
+    <div class="cog-field" aria-hidden="true"></div>
+    <div class="topo-mount topo-mount--hero" aria-hidden="true">
+      <svg class="topo-svg" viewBox="0 0 800 600">
+        <path class="topo-path" d="M100 200 C200 100, 400 300, 600 150 S 750 400, 700 500"/>
+        <path class="topo-path" d="M50 300 C250 200, 450 400, 650 250 S 780 450, 720 550"/>
+        <text class="topo-label" x="120" y="210">GRID-REF: 40K.GRID.09</text>
+        <text class="topo-label" x="610" y="160">ELEVATION: +450M</text>
+      </svg>
+    </div>
+    <div class="ash-field" aria-hidden="true"></div>
+    <div class="crt-overlay" aria-hidden="true"></div>
+    <span class="img-tag img-tag--bl">Placeholder — Diorama photo study</span>
+
+    <div class="hero-inner">
+      <div class="emblem-wrap">
+        <!-- Hero Centerpiece Iron Halo & Crossed Paintbrushes Emblem -->
+        <svg width="84" height="84" viewBox="0 0 32 32" role="img" aria-label="Never Go Full Dave Studio Emblem">
+          <defs>
+            <linearGradient id="heroEmblemGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#d4b265"/>
+              <stop offset="100%" stop-color="#ff6e4a"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="13" fill="none" stroke="url(#heroEmblemGrad)" stroke-width="1.8" stroke-dasharray="4 2"/>
+          <circle cx="16" cy="16" r="10" fill="none" stroke="#d4b265" stroke-width="1" opacity="0.6"/>
+          <path d="M16 1v4M16 27v4M1 16h4M27 16h4" stroke="url(#heroEmblemGrad)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="7" y1="25" x2="25" y2="7" stroke="url(#heroEmblemGrad)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="7" y1="7" x2="25" y2="25" stroke="url(#heroEmblemGrad)" stroke-width="1.8" stroke-linecap="round"/>
+          <polygon points="25,7 28,4 26,9" fill="#ff6e4a"/>
+          <polygon points="25,25 28,28 26,23" fill="#ff6e4a"/>
+        </svg>
+      </div>
+
+      <p class="boot-sequence is-empty" id="bootSequence" aria-hidden="true"></p>
+
+      <h1 class="hero-title" id="heroTitle" data-text="NEVER GO FULL DAVE"></h1>
+      <p class="hero-warning">Commission Miniature Painting • Warhammer 40k & Age of Sigmar</p>
+      <p class="hero-tagline">Display-grade painting, clean edge work, and custom basing for armies, characters, and showcase centerpiece miniatures.</p>
+      <a class="cta magnetic" href="#gallery">
+        <span>Explore the Portfolio</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <svg class="purity-seal" id="puritySeal" viewBox="0 0 48 48" role="img" aria-label="Purity seal">
+        <circle cx="24" cy="20" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="24" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+        <path d="M24 12v16M17 20h14" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M18 32l6 10 6-10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Section 2: Portfolio Gallery -->
+  <section class="gallery" id="gallery">
+    <div class="granite-overlay" aria-hidden="true"></div>
+    <div class="container">
+      <p class="section-kicker">Miniature Portfolio</p>
+      <h2 class="section-title">The Painted Vault</h2>
+      <p class="section-lede">Filter through painted squads, individual characters, and centerpiece dioramas. Click any card for recipe details.</p>
+      
+      <!-- Faction Filter Bar -->
+      <div class="filter-bar">
+        <button type="button" class="filter-btn is-active" data-filter="all">
+          <span>All Armies</span>
+          <span class="filter-count">6</span>
+        </button>
+        <button type="button" class="filter-btn" data-filter="am">
+          <span>Astra Militarum</span>
+          <span class="filter-count">3</span>
+        </button>
+        <button type="button" class="filter-btn" data-filter="kh">
+          <span>Khorne Chaos</span>
+          <span class="filter-count">3</span>
+        </button>
+      </div>
+
+      <div class="gallery-grid">
+        <button type="button" class="card card--am card--am1 card--landscape" data-faction="am" data-modal="am1" aria-haspopup="dialog">
+          <span class="card-badge">Cadian Regiment</span>
+          <span class="card-caption">
+            <span class="name">Cadian Command Squad</span>
+            <span class="faction">Astra Militarum</span>
+          </span>
+        </button>
+        <button type="button" class="card card--am card--am2 card--portrait" data-faction="am" data-modal="am2" aria-haspopup="dialog">
+          <span class="card-badge">Trench Line</span>
+          <span class="card-caption">
+            <span class="name">Death Korps Trench Line</span>
+            <span class="faction">Astra Militarum</span>
+          </span>
+        </button>
+        <button type="button" class="card card--am card--am3 card--landscape" data-faction="am" data-modal="am3" aria-haspopup="dialog">
+          <span class="card-badge">Armored Vehicle</span>
+          <span class="card-caption">
+            <span class="name">Leman Russ Weathering Study</span>
+            <span class="faction">Astra Militarum</span>
+          </span>
+        </button>
+        <button type="button" class="card card--kh card--kh1 card--portrait" data-faction="kh" data-modal="kh1" aria-haspopup="dialog">
+          <span class="card-badge">Daemon Vanguard</span>
+          <span class="card-caption">
+            <span class="name">Bloodletter Vanguard</span>
+            <span class="faction">Khorne</span>
+          </span>
+        </button>
+        <button type="button" class="card card--kh card--kh2 card--landscape" data-faction="kh" data-modal="kh2" aria-haspopup="dialog">
+          <span class="card-badge">Bloodbound</span>
+          <span class="card-caption">
+            <span class="name">Skullreaper Warband</span>
+            <span class="faction">Khorne</span>
+          </span>
+        </button>
+        <button type="button" class="card card--kh card--kh3 card--portrait" data-faction="kh" data-modal="kh3" aria-haspopup="dialog">
+          <span class="card-badge">Centerpiece</span>
+          <span class="card-caption">
+            <span class="name">Khorne Lord on Juggernaut</span>
+            <span class="faction">Khorne</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <!-- Section 3: Specialties -->
+  <section class="specialties-section" id="specialties">
+    <div class="container" style="text-align: center;">
+      <p class="section-kicker" style="justify-content: center;">Painting Capabilities</p>
+      <h2 class="section-title">Specialties & Unit Types</h2>
+      <p class="section-lede" style="margin-inline: auto;">Every commission is tailored to your army's aesthetic, from high-count tabletop squads to individual showcase heroes.</p>
+      
+      <div class="spec-grid">
+        <div class="spec-card">
+          <svg class="spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <h3>Troops & Squads</h3>
+          <p>Cohesive color schemes, crisp basecoats, and clean shading across full battleline squads.</p>
+        </div>
+
+        <div class="spec-card">
+          <svg class="spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <h3>Heroes & Characters</h3>
+          <p>Multi-layer edge highlights, smooth skin tones, detailed armor glazes, and detailed faces.</p>
+        </div>
+
+        <div class="spec-card">
+          <svg class="spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>
+          <h3>Vehicles & Armor</h3>
+          <p>Airbrush gradients, battle damage chipping, rust stains, mud splatter, and realistic weathering.</p>
+        </div>
+
+        <div class="spec-card">
+          <svg class="spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <h3>Dioramas & Basing</h3>
+          <p>Custom resin terrain, dynamic light effects (OSL), and display-case narrative bases.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <!-- Section 4: Painting Standards -->
+  <section class="pricing" id="pricing">
+    <div class="granite-overlay" aria-hidden="true"></div>
+    <div class="container">
+      <p class="section-kicker">Painting Benchmarks</p>
+      <h2 class="section-title">Quality Standards & Tiers</h2>
+      <p class="section-lede">These painting standards define the level of detail and techniques applied to your models. Use them as a reference when requesting your custom quote below.</p>
+
+      <div class="pricing-grid">
+        <article class="tier-card">
+          <p class="tier-kicker">Standard 01</p>
+          <h3 class="tier-name">Tabletop Ready</h3>
+          <p class="tier-price"><span class="amount">$40–70</span><span style="font-size: 0.8rem; color: var(--text-muted);">/ model avg</span></p>
+          <ul class="tier-features">
+            <li>Three-color base scheme plus shade wash</li>
+            <li>Clean edge highlights</li>
+            <li>Standard battlefield basing</li>
+            <li>Great for large army battleline squads</li>
+          </ul>
+        </article>
+
+        <article class="tier-card">
+          <p class="tier-kicker">Standard 02</p>
+          <h3 class="tier-name">Display Quality</h3>
+          <p class="tier-price"><span class="amount">$90–160</span><span style="font-size: 0.8rem; color: var(--text-muted);">/ model avg</span></p>
+          <ul class="tier-features">
+            <li>Multi-layer blending and acrylic glazes</li>
+            <li>Freehand unit iconography & battle damage</li>
+            <li>Upgraded textured basing</li>
+            <li>Ideal for captains, squad leaders & characters</li>
+          </ul>
+        </article>
+
+        <article class="tier-card tier-card--centerpiece">
+          <p class="tier-kicker">Standard 03</p>
+          <h3 class="tier-name">Centerpiece Masterpiece</h3>
+          <p class="tier-price"><span class="amount">Custom Quote</span></p>
+          <ul class="tier-features">
+            <li>Multi-model narrative composition</li>
+            <li>Non-Metallic Metal (NMM) & OSL light FX</li>
+            <li>Sculpted resin terrain base</li>
+            <li>Showcase display-case centerpieces</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <!-- Section 5: Commission Interactive Intake Form -->
+  <section class="commission" id="commission">
+    <div class="container">
+      <p class="section-kicker">Commission Request</p>
+      <h2 class="section-title">Request a Custom Quote</h2>
+      <p class="section-lede">Fill out the quick project questionnaire below to generate a pre-formatted commission inquiry for Dave.</p>
+
+      <div class="intake-wizard-card">
+        <div class="wizard-grid">
+          <div class="form-group">
+            <label for="formArmy">1. Faction / Army / Game</label>
+            <input type="text" id="formArmy" placeholder="e.g. Space Marines, Ultramarines, Stormcast Eternals...">
+          </div>
+
+          <div class="form-group">
+            <label for="formUnitType">2. Model Type & Quantity</label>
+            <select id="formUnitType">
+              <option value="Squad (5-10 Infantry)">Squad (5–10 Infantry Models)</option>
+              <option value="Single Character / Hero">Single Character / Hero Model</option>
+              <option value="Vehicle / Monster">Vehicle / Tank / Monster</option>
+              <option value="Full Army (20+ Models)">Full Army (20+ Models)</option>
+              <option value="Custom Diorama / Centerpiece">Custom Diorama / Centerpiece</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="formCondition">3. Current Assembly State</label>
+            <select id="formCondition">
+              <option value="New on Sprue (Unassembled)">New on Sprue (Unassembled)</option>
+              <option value="Assembled & Unprimed">Assembled & Unprimed</option>
+              <option value="Assembled & Primed">Assembled & Primed</option>
+              <option value="Needs Paint Stripping">Needs Old Paint Stripping</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="formTier">4. Desired Painting Standard</label>
+            <select id="formTier">
+              <option value="Tabletop Ready">Tabletop Ready</option>
+              <option value="Display Quality">Display Quality</option>
+              <option value="Centerpiece Masterpiece">Centerpiece Masterpiece</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.5rem;">
+          <label for="formNotes">5. Custom Notes, Color Preferences, or Reference Photo Links</label>
+          <textarea id="formNotes" placeholder="Include any specific chapter schemes, basing preferences (desert, snow, urban rubble), or deadline dates..."></textarea>
+        </div>
+
+        <a class="mailto-btn magnetic" id="formSubmitBtn" href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+          <span>Transmit Quote Request to Dave</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <!-- Section 6: Environment & Diorama Showcase -->
+  <section class="showcase" id="showcase">
+    <div class="container">
+      <div class="showcase-grid">
+        <div>
+          <p class="section-kicker">Environment & Diorama</p>
+          <h2 class="section-title">When It's a Whole Scene</h2>
+          <p>Some commissions extend beyond single models: custom resin terrain, complex lighting setups, and multi-model narrative clashes.</p>
+          <p>Sculpted basing, layered atmospheric glazes, and bold contrast ensure the story reads from across the room.</p>
+          <div class="showcase-tag-row">
+            <span class="showcase-tag">Sculpted Terrain</span>
+            <span class="showcase-tag">Multi-Model Scenes</span>
+            <span class="showcase-tag">OSL & Weathering</span>
+          </div>
+        </div>
+        <div class="showcase-frame">
+          <img src="assets/diorama_2_DELETE.jpg" alt="Centerpiece diorama photo study">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <!-- Section 7: Artist Bio -->
+  <section class="about-section" id="about">
+    <div class="granite-overlay" aria-hidden="true"></div>
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-avatar-card">
+          <div class="about-avatar-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+          </div>
+          <h3 style="font-size: 1.3rem; color: var(--text); margin-bottom: 0.3rem;">Meet Dave</h3>
+          <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--brass); text-transform: uppercase;">Artist & Studio Lead</p>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.75rem;">Former US Army Officer • Rock Climber • Warhammer Enthusiast</p>
+        </div>
+
+        <div>
+          <p class="section-kicker">Behind The Paintbrush</p>
+          <h2 class="section-title">Precision, Patience & Discipline</h2>
+          <p style="color: var(--text-muted); font-size: 1.05rem;">Before setting up the paint desk, Dave served as a US Army officer. That background brings a high level of operational discipline to commission painting: structured inventorying, consistent quality control, and strict deadline adherence.</p>
+          <p style="color: var(--text-muted); font-size: 1.05rem; margin-top: 1rem;">When he's not at the workbench, he's out rock climbing. The same patience required for route-finding and anchor placement translates directly into multi-layered edge highlighting, fine detail brushwork, and custom terrain building.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chevron-rule" aria-hidden="true"></div>
+
+  <!-- Section 8: Dispatches -->
+  <section class="dispatches" id="dispatches">
+    <div class="container">
+      <p class="section-kicker">Dispatches</p>
+      <h2 class="section-title">Hobby Desk Logs</h2>
+      <div class="post-grid">
+        <button type="button" class="post-card" data-modal="post1" aria-haspopup="dialog">
+          <span class="tag">Technique</span>
+          <h3>Getting Brass Right (Finally)</h3>
+          <span class="read-more">> Access dataslate</span>
+        </button>
+        <button type="button" class="post-card" data-modal="post2" aria-haspopup="dialog">
+          <span class="tag">Maintenance</span>
+          <h3>Airbrush Maintenance Discipline</h3>
+          <span class="read-more">> Access dataslate</span>
+        </button>
+        <button type="button" class="post-card" data-modal="post3" aria-haspopup="dialog">
+          <span class="tag">Centerpiece</span>
+          <h3>Why the Juggernaut Took Four Months</h3>
+          <span class="read-more">> Access dataslate</span>
+        </button>
+      </div>
+
+      <div class="archive-cta">
+        <button type="button" class="archive-btn" id="openArchiveBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><path d="M10 13h4"/></svg>
+          <span>View Full Dispatches Archive</span>
+        </button>
+      </div>
+    </div>
+<!-- Fixed Rusted Industrial Audio Control Panel (Bottom-Right) -->
+<div class="industrial-audio-widget" id="industrialAudioWidget">
+  <span class="widget-screw widget-screw--tl" aria-hidden="true"></span>
+  <span class="widget-screw widget-screw--tr" aria-hidden="true"></span>
+  <span class="widget-screw widget-screw--bl" aria-hidden="true"></span>
+  <span class="widget-screw widget-screw--br" aria-hidden="true"></span>
+
+  <!-- Metallic Speaker Grill -->
+  <div class="widget-speaker" title="Studio Vox Audio Feed">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+    </svg>
+  </div>
+
+  <!-- Gloomy Abandoned Warehouse Flickering Bulb -->
+  <div class="warehouse-light-housing" title="Power Grid Indicator">
+    <div class="warehouse-light-bulb" id="warehouseLightBulb"></div>
+  </div>
+
+  <!-- Rusted Heavy Vertical Toggle Switch -->
+  <button type="button" class="vertical-rust-switch" id="rustToggleBtn" aria-label="Toggle Industrial Techno Audio Feed" aria-pressed="false">
+    <span class="switch-housing">
+      <span class="switch-slot"></span>
+      <span class="switch-lever" id="rustLever"></span>
+    </span>
+  </button>
+  <span class="widget-label" id="widgetLabel">OFF</span>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <!-- Studio Seal -->
+    <svg class="footer-seal" viewBox="0 0 32 32">
+      <defs>
+        <linearGradient id="footerSealGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#d4b265"/>
+          <stop offset="100%" stop-color="#ff6e4a"/>
+        </linearGradient>
+      </defs>
+      <circle cx="16" cy="16" r="13" fill="none" stroke="url(#footerSealGrad)" stroke-width="1.8" stroke-dasharray="4 2"/>
+      <circle cx="16" cy="16" r="10" fill="none" stroke="#d4b265" stroke-width="1" opacity="0.6"/>
+      <path d="M16 1v4M16 27v4M1 16h4M27 16h4" stroke="url(#footerSealGrad)" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="7" y1="25" x2="25" y2="7" stroke="url(#footerSealGrad)" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="7" y1="7" x2="25" y2="25" stroke="url(#footerSealGrad)" stroke-width="1.8" stroke-linecap="round"/>
+      <polygon points="25,7 28,4 26,9" fill="#ff6e4a"/>
+      <polygon points="25,25 28,28 26,23" fill="#ff6e4a"/>
+    </svg>
+
+    <a class="footer-social" href="https://instagram.com/nevergofulldave" target="_blank" rel="noopener" aria-label="Instagram @nevergofulldave">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <p>&copy; 2026 Never Go Full Dave. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- Shared Detail Modal -->
+<dialog id="detailModal" class="modal">
+  <div class="modal-content">
+    <button type="button" class="modal-close" id="modalCloseBtn" aria-label="Close dialog">✕</button>
+    <p id="modalKicker" style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brass); text-transform: uppercase; margin-bottom: 0.5rem;"></p>
+    <h3 id="modalTitle" style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text);"></h3>
+    <div id="modalBody" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;"></div>
+  </div>
+</dialog>
+
+<!-- Dispatches Full Archive Modal -->
+<dialog id="archiveModal" class="modal">
+  <div class="modal-content" style="width: min(50rem, calc(100vw - 2.5rem));">
+    <button type="button" class="modal-close" id="archiveCloseBtn" aria-label="Close dialog">✕</button>
+    <p style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brass); text-transform: uppercase; margin-bottom: 0.5rem;">Archive Index</p>
+    <h3 style="font-size: 1.6rem; margin-bottom: 1.5rem; color: var(--text);">Full Dispatches Archive</h3>
+    
+    <div id="archiveList">
+      <div class="archive-list-item" data-modal="post1">
+        <span class="tag">Technique</span>
+        <h4 style="font-size: 1.1rem; color: var(--text); margin-block: 0.3rem;">Getting Brass Right (Finally)</h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">NMM bronze recipes, highlight placement, and surviving a 3-foot table read.</p>
+      </div>
+
+      <div class="archive-list-item" data-modal="post2">
+        <span class="tag">Maintenance</span>
+        <h4 style="font-size: 1.1rem; color: var(--text); margin-block: 0.3rem;">Airbrush Maintenance Discipline</h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Preventative cleaning routines and needle cap care.</p>
+      </div>
+
+      <div class="archive-list-item" data-modal="post3">
+        <span class="tag">Centerpiece</span>
+        <h4 style="font-size: 1.1rem; color: var(--text); margin-block: 0.3rem;">Why the Juggernaut Took Four Months</h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Navigating centerpiece project burnout and long-form gold gradients.</p>
+      </div>
+
+      <div class="archive-list-item" data-modal="post4">
+        <span class="tag">Basing</span>
+        <h4 style="font-size: 1.1rem; color: var(--text); margin-block: 0.3rem;">Basing Material Rabbit Holes</h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Static grass versus flock comparison under acrylic washes.</p>
+      </div>
+
+      <div class="archive-list-item" data-modal="post5">
+        <span class="tag">Gear</span>
+        <h4 style="font-size: 1.1rem; color: var(--text); margin-block: 0.3rem;">The Airbrush Compressor Finally Died</h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Salvaging fittings and choosing quiet replacements for late-night sessions.</p>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var pointerFine = window.matchMedia("(pointer: fine)").matches;
+
+  /* ---------------- Entry Burst Canvas Animation ---------------- */
+  var burstCanvas = document.getElementById("burst-canvas");
+  var burstCtx = burstCanvas ? burstCanvas.getContext("2d") : null;
+  var BURST_COUNT = 120;
+
+  function sizeCanvas(canvas) {
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function runEntryBurst() {
+    if (!burstCanvas || !burstCtx) return;
+    sizeCanvas(burstCanvas);
+    if (reduceMotion) { burstCanvas.style.display = "none"; return; }
+
+    var cx = burstCanvas.width / 2;
+    var cy = burstCanvas.height / 2;
+    var colors = ["#d4b265", "#ff6e4a", "#92a450", "#ece9e2", "#6ee5cc"];
+    var particles = [];
+
+    for (var i = 0; i < BURST_COUNT; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var speed = 6 + Math.random() * 10;
+      particles.push({
+        x: cx, y: cy,
+        angle: angle,
+        speed: speed,
+        initSpeed: speed,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        len: 4 + Math.random() * 10
+      });
+    }
+
+    function tick() {
+      burstCtx.clearRect(0, 0, burstCanvas.width, burstCanvas.height);
+      var alive = false;
+      particles.forEach(function (p) {
+        p.speed *= 0.90;
+        if (p.speed > 0.05) alive = true;
+        var nx = p.x + Math.cos(p.angle) * p.speed;
+        var ny = p.y + Math.sin(p.angle) * p.speed;
+        var alpha = Math.max(0, Math.min(1, p.speed / p.initSpeed));
+        burstCtx.strokeStyle = p.color;
+        burstCtx.globalAlpha = alpha;
+        burstCtx.lineWidth = 2;
+        burstCtx.beginPath();
+        burstCtx.moveTo(p.x, p.y);
+        burstCtx.lineTo(nx, ny);
+        burstCtx.stroke();
+        p.x = nx; p.y = ny;
+      });
+      burstCtx.globalAlpha = 1;
+      if (alive && !document.hidden) {
+        requestAnimationFrame(tick);
+      } else {
+        burstCtx.clearRect(0, 0, burstCanvas.width, burstCanvas.height);
+        burstCanvas.style.display = "none";
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  runEntryBurst();
+
+  /* ---------------- Forge Spark Cursor Particle Trail ---------------- */
+  if (pointerFine && !reduceMotion) {
+    var trailCanvas = document.getElementById("trail-canvas");
+    var trailCtx = trailCanvas ? trailCanvas.getContext("2d") : null;
+    if (trailCanvas && trailCtx) {
+      sizeCanvas(trailCanvas);
+      var TRAIL_MAX = 45;
+      var sparks = [];
+      var lastX = null, lastY = null;
+      var SPARK_COLORS = ["#d4b265", "#ff6e4a", "#e9a04f", "#6ee5cc"];
+
+      window.addEventListener("mousemove", function (e) {
+        var speed = 0;
+        if (lastX !== null) speed = Math.hypot(e.clientX - lastX, e.clientY - lastY);
+        var travelAngle = lastX !== null ? Math.atan2(e.clientY - lastY, e.clientX - lastX) : 0;
+        lastX = e.clientX; lastY = e.clientY;
+
+        if (speed < 1.5) return;
+        var count = speed > 25 ? 3 : 1;
+        for (var s = 0; s < count; s++) {
+          var jitter = (Math.random() - 0.5) * 1.2;
+          var backAngle = travelAngle + Math.PI + jitter;
+          var vel = Math.min(6.5, 1.5 + speed * 0.14);
+          sparks.push({
+            x: e.clientX, y: e.clientY,
+            vx: Math.cos(backAngle) * vel,
+            vy: Math.sin(backAngle) * vel,
+            len: 3 + Math.random() * 7,
+            angle: backAngle,
+            color: SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)],
+            alpha: Math.min(1, speed / 25 + 0.35)
+          });
+          if (sparks.length > TRAIL_MAX) sparks.shift();
+        }
+      }, { passive: true });
+
+      function drawTrail() {
+        trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+        for (var i = 0; i < sparks.length; i++) {
+          var p = sparks[i];
+          trailCtx.beginPath();
+          trailCtx.strokeStyle = p.color;
+          trailCtx.globalAlpha = Math.max(0, p.alpha);
+          trailCtx.lineWidth = 1.8;
+          trailCtx.lineCap = "round";
+          trailCtx.moveTo(p.x, p.y);
+          trailCtx.lineTo(p.x - Math.cos(p.angle) * p.len, p.y - Math.sin(p.angle) * p.len);
+          trailCtx.stroke();
+          p.x += p.vx; p.y += p.vy;
+          p.vy += 0.12; // Gravity drift
+          p.vx *= 0.94; p.vy *= 0.98;
+          p.alpha *= 0.91;
+        }
+        trailCtx.globalAlpha = 1;
+        sparks = sparks.filter(function (p) { return p.alpha > 0.03; });
+        requestAnimationFrame(drawTrail);
+      }
+      requestAnimationFrame(drawTrail);
+      window.addEventListener("resize", function () { sizeCanvas(trailCanvas); }, { passive: true });
+    }
+  }
+
+  /* ---------------- HTML5 Background Music Integration with Industrial Widget ---------------- */
+  var bgAudio = document.getElementById("bgAudio");
+  var industrialAudioWidget = document.getElementById("industrialAudioWidget");
+  var rustToggleBtn = document.getElementById("rustToggleBtn");
+  var widgetLabel = document.getElementById("widgetLabel");
+  var audioEnabled = false;
+  var fadeInterval = null;
+  var audioCtx = null;
+
+  function initAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  function playTactileClick() {
+    initAudioCtx();
+    if (!audioCtx) return;
+    try {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.06);
+
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.06);
+    } catch (e) {}
+  }
+
+  function fadeInAudio(targetVol, durationMs) {
+    if (!bgAudio) return;
+    clearInterval(fadeInterval);
+    bgAudio.volume = 0;
+    bgAudio.play().catch(function (err) { console.log("Audio play error:", err); });
+    
+    var stepMs = 50;
+    var steps = durationMs / stepMs;
+    var volInc = targetVol / steps;
+
+    fadeInterval = setInterval(function () {
+      if (bgAudio.volume + volInc >= targetVol) {
+        bgAudio.volume = targetVol;
+        clearInterval(fadeInterval);
+      } else {
+        bgAudio.volume += volInc;
+      }
+    }, stepMs);
+  }
+
+  function fadeOutAudio(durationMs) {
+    if (!bgAudio) return;
+    clearInterval(fadeInterval);
+    var stepMs = 50;
+    var steps = durationMs / stepMs;
+    var volDec = bgAudio.volume / steps;
+
+    fadeInterval = setInterval(function () {
+      if (bgAudio.volume - volDec <= 0) {
+        bgAudio.volume = 0;
+        bgAudio.pause();
+        clearInterval(fadeInterval);
+      } else {
+        bgAudio.volume -= volDec;
+      }
+    }, stepMs);
+  }
+
+  if (rustToggleBtn) {
+    rustToggleBtn.addEventListener("click", function () {
+      playTactileClick();
+      audioEnabled = !audioEnabled;
+      if (industrialAudioWidget) industrialAudioWidget.classList.toggle("is-active", audioEnabled);
+      rustToggleBtn.setAttribute("aria-pressed", String(audioEnabled));
+      if (widgetLabel) widgetLabel.textContent = audioEnabled ? "ON" : "OFF";
+
+      if (audioEnabled) {
+        fadeInAudio(0.4, 800);
+      } else {
+        fadeOutAudio(500);
+      }
+    });
+  }
+
+  /* ---------------- Terminal Boot Sequence & Hacker Scramble Reveal ---------------- */
+  var heroTitle = document.getElementById("heroTitle");
+  var bootEl = document.getElementById("bootSequence");
+  var puritySeal = document.getElementById("puritySeal");
+
+  var GLYPHS = "0123456789ABCDEF⌘⌥⌖⚙︎†‡░▒▓█";
+  var BOOT_LINES = [
+    "INITIALIZING DATASLATE...",
+    "ESTABLISHING VOX LINK...",
+    "MECHANICUS CORE: ONLINE",
+    "SYSTEMS: READY"
+  ];
+
+  function runScramble(targetEl, finalText, onComplete) {
+    targetEl.innerHTML = "";
+    var chars = finalText.split("").map(function (c) {
+      var s = document.createElement("span");
+      if (c === " ") {
+        s.textContent = " ";
+      } else {
+        s.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }
+      targetEl.appendChild(s);
+      return { el: s, final: c };
+    });
+
+    var start = null;
+    var perCharDelay = 45;
+    var scrambleWindow = 260;
+    var lastFlip = chars.map(function () { return 0; });
+
+    function frame(ts) {
+      if (start === null) start = ts;
+      var elapsed = ts - start;
+      var done = true;
+      chars.forEach(function (c, i) {
+        if (c.final === " ") return;
+        var revealAt = i * perCharDelay + scrambleWindow;
+        if (elapsed >= revealAt) {
+          c.el.textContent = c.final;
+        } else {
+          done = false;
+          if (elapsed - lastFlip[i] > 40) {
+            c.el.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+            lastFlip[i] = elapsed;
+          }
+        }
+      });
+      if (!done) {
+        requestAnimationFrame(frame);
+      } else if (onComplete) {
+        onComplete();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function runBootSequence(onDone) {
+    if (reduceMotion || !bootEl) { onDone(); return; }
+    bootEl.classList.remove("is-empty");
+    var i = 0;
+    var LINE_MS = 340;
+    function step() {
+      if (document.hidden) { setTimeout(step, LINE_MS); return; }
+      if (i >= BOOT_LINES.length) {
+        bootEl.classList.add("is-empty");
+        bootEl.textContent = "";
+        onDone();
+        return;
+      }
+      bootEl.textContent = BOOT_LINES[i];
+      i++;
+      setTimeout(step, LINE_MS);
+    }
+    step();
+  }
+
+  if (heroTitle) {
+    var finalText = heroTitle.getAttribute("data-text") || "NEVER GO FULL DAVE";
+    runBootSequence(function () {
+      runScramble(heroTitle, finalText, function () {
+        if (puritySeal) puritySeal.classList.add("is-stamped");
+      });
+    });
+  }
+
+  /* ---------------- Morse-code status light: blinks "NGFD" ---------------- */
+  var morseLight = document.getElementById("morseLight");
+  if (morseLight) {
+    if (reduceMotion) {
+      morseLight.classList.add("is-steady");
+    } else {
+      var UNIT = 150;
+      var PATTERN = [
+        [true, 3], [false, 1], [true, 1],             // N: -.
+        [false, 3],
+        [true, 3], [false, 1], [true, 3], [false, 1], [true, 1], // G: --.
+        [false, 3],
+        [true, 1], [false, 1], [true, 1], [false, 1], [true, 3], [false, 1], [true, 1], // F: ..-.
+        [false, 3],
+        [true, 3], [false, 1], [true, 1], [false, 1], [true, 1], // D: -..
+        [false, 7]
+      ];
+      var idx = 0;
+      function morseStep() {
+        var entry = PATTERN[idx % PATTERN.length];
+        morseLight.classList.toggle("is-on", entry[0]);
+        idx++;
+        var delay = entry[1] * UNIT;
+        setTimeout(function () {
+          if (document.hidden) {
+            document.addEventListener("visibilitychange", function resume() {
+              if (!document.hidden) {
+                document.removeEventListener("visibilitychange", resume);
+                morseStep();
+              }
+            });
+            return;
+          }
+          morseStep();
+        }, delay);
+      }
+      morseStep();
+    }
+  }
+
+  /* ---------------- Magnetic Physics Hover (Excludes Static Nav Links) ---------------- */
+  if (pointerFine && !reduceMotion) {
+    var magnets = Array.prototype.slice.call(document.querySelectorAll(".magnetic:not(.nav-link)"));
+    var RADIUS = 90;
+    var STRENGTH = 0.35;
+
+    window.addEventListener("mousemove", function (e) {
+      magnets.forEach(function (el) {
+        var rect = el.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var dx = e.clientX - cx;
+        var dy = e.clientY - cy;
+        var dist = Math.hypot(dx, dy);
+        if (dist < RADIUS) {
+          var pull = (1 - dist / RADIUS) * STRENGTH;
+          el.style.transform = "translate(" + (dx * pull).toFixed(2) + "px," + (dy * pull).toFixed(2) + "px)";
+        } else {
+          el.style.transform = "translate(0,0)";
+        }
+      });
+    }, { passive: true });
+
+    magnets.forEach(function (el) {
+      el.style.transition = "transform 0.3s cubic-bezier(0.2,0.8,0.2,1)";
+      el.addEventListener("mouseleave", function () {
+        el.style.transform = "translate(0,0)";
+      });
+    });
+  }
+
+  /* ---------------- Interference Sweep Burst on Gallery Cards ---------------- */
+  if (!reduceMotion) {
+    var galleryCards = Array.prototype.slice.call(document.querySelectorAll(".gallery .card"));
+    galleryCards.forEach(function (card) {
+      var timer = null;
+      function trigger() {
+        card.classList.remove("is-active");
+        void card.offsetWidth;
+        card.classList.add("is-active");
+        clearTimeout(timer);
+        timer = setTimeout(function () { card.classList.remove("is-active"); }, 520);
+      }
+      card.addEventListener("pointerenter", trigger);
+      card.addEventListener("focus", trigger);
+    });
+  }
+
+  /* ---------------- Navigation ---------------- */
+  var navToggle = document.getElementById("navToggle");
+  var navMenu = document.getElementById("navMenu");
+  navToggle.addEventListener("click", function () {
+    var open = navMenu.classList.toggle("is-open");
+    navToggle.setAttribute("aria-expanded", String(open));
+    playTactileClick();
+  });
+
+  /* ---------------- Telemetry HUD & Reticle ---------------- */
+  var reticle = document.getElementById("auspexReticle");
+  var telemetryText = document.getElementById("telemetryText");
+  var mouseX = 0, mouseY = 0;
+  var rx = 0, ry = 0;
+
+  window.addEventListener("mousemove", function (e) {
+    mouseX = e.clientX; mouseY = e.clientY;
+    if (reticle) reticle.classList.add("is-active");
+    if (telemetryText) {
+      telemetryText.textContent = "TACTICAL HUD | POS: " + mouseX + ", " + mouseY + " | STATUS: READY";
+    }
+  }, { passive: true });
+
+  document.addEventListener("mouseover", function (e) {
+    if (!reticle) return;
+    var isClickable = e.target.closest && e.target.closest("a, button, [data-modal]");
+    reticle.classList.toggle("is-locked", !!isClickable);
+  }, { passive: true });
+
+  function updateReticle() {
+    rx += (mouseX - rx) * 0.25;
+    ry += (mouseY - ry) * 0.25;
+    if (reticle) {
+      reticle.style.transform = "translate3d(" + rx.toFixed(1) + "px," + ry.toFixed(1) + "px,0)";
+    }
+    requestAnimationFrame(updateReticle);
+  }
+  if (pointerFine && !reduceMotion) requestAnimationFrame(updateReticle);
+
+  /* ---------------- Faction Filter Bar ---------------- */
+  var filterBtns = document.querySelectorAll(".filter-btn");
+  var cards = document.querySelectorAll(".gallery-grid .card");
+
+  filterBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var filter = btn.getAttribute("data-filter");
+      filterBtns.forEach(function (b) { b.classList.remove("is-active"); });
+      btn.classList.add("is-active");
+      playTactileClick();
+
+      cards.forEach(function (card) {
+        var faction = card.getAttribute("data-faction");
+        if (filter === "all" || faction === filter) {
+          card.classList.remove("is-hidden");
+        } else {
+          card.classList.add("is-hidden");
+        }
+      });
+    });
+  });
+
+  /* ---------------- Interactive Intake Form Mailto Sync ---------------- */
+  var formArmy = document.getElementById("formArmy");
+  var formUnitType = document.getElementById("formUnitType");
+  var formCondition = document.getElementById("formCondition");
+  var formTier = document.getElementById("formTier");
+  var formNotes = document.getElementById("formNotes");
+  var formSubmitBtn = document.getElementById("formSubmitBtn");
+
+  function updateMailtoLink() {
+    var army = formArmy ? formArmy.value || "Not specified" : "Not specified";
+    var unit = formUnitType ? formUnitType.value : "";
+    var condition = formCondition ? formCondition.value : "";
+    var tier = formTier ? formTier.value : "";
+    var notes = formNotes ? formNotes.value || "None provided" : "None provided";
+
+    var body = "COMMISSION INQUIRY DETAILS\n--------------------------\n1. Army/Faction: " + army + "\n2. Unit Type/Quantity: " + unit + "\n3. Assembly Condition: " + condition + "\n4. Target Quality Standard: " + tier + "\n5. Additional Notes & Links:\n" + notes;
+    if (formSubmitBtn) {
+      formSubmitBtn.href = "mailto:westphds@gmail.com?subject=" + encodeURIComponent("Commission Inquiry: " + army + " (" + unit + ")") + "&body=" + encodeURIComponent(body);
+    }
+  }
+
+  [formArmy, formUnitType, formCondition, formTier, formNotes].forEach(function (el) {
+    if (el) el.addEventListener("input", updateMailtoLink);
+    if (el) el.addEventListener("change", updateMailtoLink);
+  });
+  updateMailtoLink();
+
+  /* ---------------- Modal Dialogs ---------------- */
+  var modal = document.getElementById("detailModal");
+  var modalKicker = document.getElementById("modalKicker");
+  var modalTitle = document.getElementById("modalTitle");
+  var modalBody = document.getElementById("modalBody");
+  var modalCloseBtn = document.getElementById("modalCloseBtn");
+
+  var archiveModal = document.getElementById("archiveModal");
+  var openArchiveBtn = document.getElementById("openArchiveBtn");
+  var archiveCloseBtn = document.getElementById("archiveCloseBtn");
+
+  var MODAL_DATA = {
+    am1: { kicker: "Astra Militarum", title: "Cadian Command Squad", body: "Krieg Khaki basecoat with Agrax Earthshade washes and bleached bone edge highlights." },
+    am2: { kicker: "Astra Militarum", title: "Death Korps Trench Line", body: "Multi-tone green stippling with realistic resin mud texturing." },
+    am3: { kicker: "Astra Militarum", title: "Leman Russ Weathering Study", body: "Chipping medium techniques with rust glazes and metallic drybrushing." },
+    kh1: { kicker: "Khorne Chaos", title: "Bloodletter Vanguard", body: "Tri-layer red gradients with NMM brass metallic highlights." },
+    kh2: { kicker: "Khorne Chaos", title: "Skullreaper Warband", body: "Black-to-red contrast glazing with gore blood effects." },
+    kh3: { kicker: "Khorne Chaos", title: "Khorne Lord on Juggernaut", body: "Masterpiece centerpiece build featuring multi-stage NMM gold armor." },
+    post1: { kicker: "Dispatch Log", title: "Getting Brass Right (Finally)", body: "Non-metallic metal is one of those techniques everyone name-drops and almost nobody enjoys doing. Four highlights, one shadow glaze, and a specular hit that has to land in exactly the wrong place to look right." },
+    post2: { kicker: "Dispatch Log", title: "Airbrush Maintenance Discipline", body: "Field maintenance discipline transfers better to hobby gear than anyone warns you. Strip, clean, inspect, reassemble." },
+    post3: { kicker: "Dispatch Log", title: "Why the Juggernaut Took Four Months", body: "Centerpiece models operate on their own timeline. This one had four false starts and one afternoon spent staring at NMM gold." },
+    post4: { kicker: "Dispatch Log", title: "Basing Material Rabbit Holes", body: "Static grass versus flock is a bigger argument than it has any right to be. Swapped over once the old bag of static grass finally ran out." },
+    post5: { kicker: "Dispatch Log", title: "The Airbrush Compressor Finally Died", body: "Outlived three different desks and one move across state lines. No dramatic failure, just a slow drop in pressure." }
+  };
+
+  document.addEventListener("click", function (e) {
+    var trigger = e.target.closest("[data-modal]");
+    if (trigger) {
+      var key = trigger.getAttribute("data-modal");
+      var data = MODAL_DATA[key];
+      if (data) {
+        if (archiveModal && archiveModal.close) archiveModal.close();
+        modalKicker.textContent = data.kicker;
+        modalTitle.textContent = data.title;
+        modalBody.textContent = data.body;
+        if (modal.showModal) modal.showModal();
+        playTactileClick();
+      }
+    }
+  });
+
+  if (modalCloseBtn) modalCloseBtn.addEventListener("click", function () { if (modal.close) modal.close(); });
+
+  if (openArchiveBtn && archiveModal) {
+    openArchiveBtn.addEventListener("click", function () {
+      if (archiveModal.showModal) archiveModal.showModal();
+      playTactileClick();
+    });
+  }
+  if (archiveCloseBtn && archiveModal) {
+    archiveCloseBtn.addEventListener("click", function () {
+      if (archiveModal.close) archiveModal.close();
+    });
+  }
+
+})();
+</script>
+</body>
+</html>

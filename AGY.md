@@ -47,14 +47,17 @@ All skills in `.agents/skills/` are scoped for frontend development (Vite + Reac
 4. **Accessibility (a11y) & Contrast**:
    - Every component with rendered markup gets a `jest-axe` test with one assertion per distinct render state (`.agents/skills/4-tdd/pre-commit.md`).
    - Verify text contrast: 4.5:1 for normal text, 3:1 for large text/interactive elements.
-5. **Git, PR & Commit Control Rules**:
-   - **GitHub Issue First**: Before pushing any code, a GitHub Issue MUST be created (`gh issue create`).
-   - **Dedicated Feature Branch**: All work MUST be committed on a dedicated branch (`<issue-number>-<slug>`). NEVER commit or push directly to `main`.
-   - **Meaningful Chunked Commits**: Make commits in logical, descriptive chunks.
-   - **STOP Before Merging PRs**: Create the Pull Request (`gh pr create`) and STOP for developer review. **NEVER merge a PR into `main` unless explicitly instructed by the developer**.
-   - **Respect Developer Commit Restraints**: If the developer requests "do not commit" or "do not push", keep changes uncommitted and await explicit developer permission.
+5. **Git & PR Strategy**:
+   - Create a GitHub Issue (`gh issue create`).
+   - Create a dedicated feature branch (`<issue-number>-<slug>`).
+   - Make commits in logical, descriptive chunks.
+   - Open Pull Request (`gh pr create`).
+   - **Auto-Merge Approved**: Automatically merge PRs into `main` after all verification steps (tests, a11y sweeps, visual checks, pre-commit) pass cleanly.
 6. **Copywriting Rule**:
    - **No em dashes** in copy, prose, or commit messages — use periods or commas.
+7. **Testability-First Architecture & Near 100% Coverage Target**:
+   - Separate stateful logic, sound control envelopes, and quote calculation formulas out of `.tsx` files into pure custom hooks (`src/hooks/*.ts`) and pure utility functions (`src/utils/*.ts`).
+   - TSX components MUST remain purely presentational with explicit callback props (`onClick`, `onToggle`, `onSubmit`) for clean dependency injection and effortless unit testing (`Vitest` + `React Testing Library` + `jest-axe`). Target near 100% test coverage across all `.ts` and `.tsx` modules.
 
 ---
 
