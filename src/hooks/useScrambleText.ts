@@ -48,7 +48,7 @@ function getRandomGlyph(glyphs: string): string {
   return glyphs[Math.floor(Math.random() * glyphs.length)]
 }
 
-function buildInitialChars(text: string, accentWord: string, isFinal: boolean, glyphs: string): ScrambleChar[] {
+function buildFinalChars(text: string, accentWord: string): ScrambleChar[] {
   const accentIndex = accentWord ? text.indexOf(accentWord) : -1
   const accentLength = accentWord ? accentWord.length : 0
 
@@ -56,8 +56,8 @@ function buildInitialChars(text: string, accentWord: string, isFinal: boolean, g
     const isAccent = accentIndex !== -1 && index >= accentIndex && index < accentIndex + accentLength
     return {
       final: char,
-      current: isFinal ? char : char === ' ' ? ' ' : getRandomGlyph(glyphs),
-      isRevealed: isFinal,
+      current: char,
+      isRevealed: true,
       isAccent,
     }
   })
@@ -65,6 +65,10 @@ function buildInitialChars(text: string, accentWord: string, isFinal: boolean, g
 
 /**
  * Custom hook for Mechanicus terminal boot sequence and matrix hacker text scramble reveal.
+ * Exactly mirrors mockdraft_dark.html algorithm:
+ * 1. Boot sequence runs (340ms per line). Title is empty.
+ * 2. Scramble animation runs (scrambleWindow 260ms + charDelay 45ms per character, 40ms flip interval).
+ * 3. Final text reveals sequentially from left to right, triggering completion and purity seal.
  */
 export function useScrambleText(
   options: UseScrambleTextOptions
@@ -74,9 +78,9 @@ export function useScrambleText(
     accentWord = 'DAVE',
     glyphs = DEFAULT_GLYPHS,
     bootLines = DEFAULT_BOOT_LINES,
-    bootLineMs = 280,
-    charDelayMs = 55,
-    scrambleWindowMs = 600,
+    bootLineMs = 340,
+    charDelayMs = 45,
+    scrambleWindowMs = 260,
     flipIntervalMs = 40,
     enabled = true,
     onComplete,
@@ -85,7 +89,7 @@ export function useScrambleText(
   const shouldSkipAnimation = !enabled || checkReducedMotion()
 
   const [chars, setChars] = useState<ScrambleChar[]>(() =>
-    buildInitialChars(text, accentWord, shouldSkipAnimation, glyphs)
+    shouldSkipAnimation ? buildFinalChars(text, accentWord) : []
   )
   const [isComplete, setIsComplete] = useState(shouldSkipAnimation)
   const [currentBootLine, setCurrentBootLine] = useState(
@@ -106,10 +110,10 @@ export function useScrambleText(
 
     let isSubscribed = true
     let bootIndex = 0
-    let scrambleTimer: number | null = null
-    let pulseTimer: ReturnType<typeof setInterval> | null = null
+    let bootTimer: ReturnType<typeof setTimeout> | null = null
+    let animId: number | null = null
 
-    // Step 1: Terminal boot lines cycling
+    // Phase 1: Terminal Boot Sequence
     const runBoot = () => {
       if (!isSubscribed) return
       if (bootIndex >= bootLines.length) {
@@ -120,75 +124,72 @@ export function useScrambleText(
       }
       setCurrentBootLine(bootLines[bootIndex])
       bootIndex++
-      setTimeout(runBoot, bootLineMs)
+      bootTimer = setTimeout(runBoot, bootLineMs)
     }
 
-    // Step 2: Sequential character reveal locking left-to-right
+    // Phase 2: Hacker Matrix Scramble Reveal Animation
     const startScramble = () => {
       if (!isSubscribed) return
 
-      const activeChars = buildInitialChars(text, accentWord, false, glyphs)
-      setChars(activeChars)
+      const accentIndex = accentWord ? text.indexOf(accentWord) : -1
+      const accentLength = accentWord ? accentWord.length : 0
 
-      pulseTimer = setInterval(() => {
+      const charsState: ScrambleChar[] = text.split('').map((char, index) => {
+        const isAccent = accentIndex !== -1 && index >= accentIndex && index < accentIndex + accentLength
+        return {
+          final: char,
+          current: char === ' ' ? ' ' : getRandomGlyph(glyphs),
+          isRevealed: false,
+          isAccent,
+        }
+      })
+
+      setChars([...charsState])
+
+      let start: number | null = null
+      const lastFlipTimes = charsState.map(() => 0)
+
+      const frame = (ts: number) => {
         if (!isSubscribed) return
-        setChars((prevChars) =>
-          prevChars.map((c) => {
-            if (c.isRevealed || c.final === ' ') return c
-            return {
-              ...c,
-              current: getRandomGlyph(glyphs),
-            }
-          })
-        )
-      }, flipIntervalMs)
-
-      let startTime: number | null = null
-
-      const frame = (time: number) => {
-        if (!isSubscribed) return
-        if (startTime === null) startTime = time
-        const elapsed = time - startTime
-
+        if (start === null) start = ts
+        const elapsed = ts - start
         let allDone = true
 
-        setChars((prevChars) =>
-          prevChars.map((charObj, index) => {
-            if (charObj.final === ' ') return charObj
-            const revealTime = index * charDelayMs + scrambleWindowMs
-
-            if (elapsed >= revealTime) {
-              return {
-                ...charObj,
-                current: charObj.final,
-                isRevealed: true,
-              }
-            } else {
-              allDone = false
-              return charObj
+        charsState.forEach((c, i) => {
+          if (c.final === ' ') return
+          const revealAt = i * charDelayMs + scrambleWindowMs
+          if (elapsed >= revealAt) {
+            c.current = c.final
+            c.isRevealed = true
+          } else {
+            allDone = false
+            if (elapsed - lastFlipTimes[i] >= flipIntervalMs) {
+              c.current = getRandomGlyph(glyphs)
+              lastFlipTimes[i] = elapsed
             }
-          })
-        )
+          }
+        })
+
+        setChars([...charsState])
 
         if (!allDone) {
-          scrambleTimer = requestAnimationFrame(frame)
+          animId = requestAnimationFrame(frame)
         } else {
-          if (pulseTimer) clearInterval(pulseTimer)
-          setChars(buildInitialChars(text, accentWord, true, glyphs))
+          setChars(buildFinalChars(text, accentWord))
           setIsComplete(true)
           if (onCompleteRef.current) onCompleteRef.current()
         }
       }
 
-      scrambleTimer = requestAnimationFrame(frame)
+      animId = requestAnimationFrame(frame)
     }
 
     runBoot()
 
     return () => {
       isSubscribed = false
-      if (pulseTimer) clearInterval(pulseTimer)
-      if (scrambleTimer) cancelAnimationFrame(scrambleTimer)
+      if (bootTimer) clearTimeout(bootTimer)
+      if (animId) cancelAnimationFrame(animId)
     }
   }, [text, accentWord, glyphs, bootLines, bootLineMs, charDelayMs, scrambleWindowMs, flipIntervalMs, shouldSkipAnimation])
 
