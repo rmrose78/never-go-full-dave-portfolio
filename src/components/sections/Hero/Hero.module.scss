@@ -206,11 +206,11 @@
 }
 
 .titleAccent {
-  color: #ffd700;
-  background: linear-gradient(180deg, #ffffff 0%, #ffe082 25%, #ffb300 65%, #d4b265 100%);
+  color: #ffff00;
+  background: linear-gradient(180deg, #ffffff 0%, #ffff00 35%, #ffd600 70%, #ffab00 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 16px rgba(255, 179, 0, 0.55));
+  filter: drop-shadow(0 0 16px rgba(255, 255, 0, 0.95)) drop-shadow(0 0 32px rgba(255, 214, 0, 0.75));
 }
 
 .heroWarning {
