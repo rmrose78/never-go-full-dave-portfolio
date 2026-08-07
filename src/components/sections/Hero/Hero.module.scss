@@ -16,6 +16,109 @@
   background: var(--void);
 }
 
+.heroPhoto {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url('/assets/images/hero-diorama.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 50% 60%;
+  filter: brightness(0.95) contrast(1.05) saturate(1.1);
+}
+
+.heroEdgeFade {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 85% 82% at 50% 48%, transparent 28%, rgba(8, 7, 6, 0.6) 65%, var(--void) 100%);
+}
+
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 65% 55% at 50% 50%, rgba(8, 7, 6, 0.88) 0%, rgba(8, 7, 6, 0.58) 50%, transparent 80%),
+    radial-gradient(ellipse 80% 60% at 50% 15%, rgba(212, 178, 101, 0.18), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 85%, rgba(255, 110, 74, 0.15), transparent 60%);
+}
+
+.cogField {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cogA {
+  position: absolute;
+  color: var(--brass);
+  opacity: 0.12;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 8px var(--brass-glow));
+  width: 48rem;
+  height: 48rem;
+  right: -16rem;
+  bottom: -18rem;
+  animation: cogSpin 140s linear infinite;
+}
+
+.cogB {
+  position: absolute;
+  color: var(--olive);
+  opacity: 0.15;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 8px var(--brass-glow));
+  width: 26rem;
+  height: 26rem;
+  right: 8rem;
+  bottom: -4rem;
+  animation: cogSpinReverse 90s linear infinite;
+}
+
+@keyframes cogSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cogSpinReverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.crtOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(rgba(18, 16, 14, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  mix-blend-mode: overlay;
+  animation: crtFlicker 7s ease-in-out infinite;
+}
+
+@keyframes crtFlicker {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 0.65;
+  }
+}
+
 .heroInner {
   position: relative;
   z-index: 4;
@@ -91,10 +194,10 @@
   font-size: clamp(1.8rem, 7.5vw, 5.8rem);
   line-height: 1.02;
   font-weight: 700;
-  color: var(--text);
+  color: #ffffff;
   display: inline-block;
   white-space: nowrap;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.95);
   margin: 0;
 
   &.isBootingTitle {
@@ -103,10 +206,11 @@
 }
 
 .titleAccent {
-  color: var(--brass);
-  background: linear-gradient(135deg, var(--brass), var(--ember));
+  color: #ffd700;
+  background: linear-gradient(135deg, #ffffff 0%, #ffea70 30%, #ffd700 10%, #ff552e 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.15));
 }
 
 .heroWarning {

@@ -28,6 +28,20 @@ export const Hero: React.FC<HeroProps> = ({
 
   return (
     <section className={styles.heroSection} id="hero" aria-label="Hero Showcase Entrance">
+      {/* Background Atmosphere Layers matching mockdraft_dark.html */}
+      <div className={styles.heroPhoto} aria-hidden="true" />
+      <div className={styles.heroEdgeFade} aria-hidden="true" />
+      <div className={styles.heroScrim} aria-hidden="true" />
+      <div className={styles.cogField} aria-hidden="true">
+        <svg className={styles.cogA} viewBox="0 0 100 100" fill="currentColor">
+          <path d="M50 35a15 15 0 1 0 0 30 15 15 0 0 0 0-30zm0 40a25 25 0 1 1 0-50 25 25 0 0 1 0 50z" />
+        </svg>
+        <svg className={styles.cogB} viewBox="0 0 100 100" fill="currentColor">
+          <path d="M50 35a15 15 0 1 0 0 30 15 15 0 0 0 0-30zm0 40a25 25 0 1 1 0-50 25 25 0 0 1 0 50z" />
+        </svg>
+      </div>
+      <div className={styles.crtOverlay} aria-hidden="true" />
+
       <div className={styles.heroInner}>
         {/* Centerpiece Studio Emblem */}
         <div className={styles.emblemWrap}>
