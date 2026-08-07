@@ -3,6 +3,8 @@ import { Header } from '@/components/layout/Header/Header'
 import { Footer } from '@/components/layout/Footer/Footer'
 import { Hero } from '@/components/sections/Hero/Hero'
 import { Gallery } from '@/components/sections/Gallery/Gallery'
+import { Specialties } from '@/components/sections/Specialties/Specialties'
+import { Standards } from '@/components/sections/Standards/Standards'
 import { IndustrialAudioWidget } from '@/components/ui/IndustrialAudioWidget/IndustrialAudioWidget'
 import styles from './App.module.scss'
 
@@ -19,6 +21,8 @@ export const App: React.FC<AppProps> = ({ children }) => {
           <>
             <Hero />
             <Gallery />
+            <Specialties />
+            <Standards />
           </>
         )}
       </main>

@@ -1,0 +1,103 @@
+@use '@/styles/_variables.scss' as *;
+@use '@/styles/_mixins.scss' as *;
+
+.tierCard {
+  position: relative;
+  border: 1px solid rgba(212, 178, 101, 0.2);
+  border-radius: 8px;
+  padding: 1.85rem 1.5rem;
+  background: linear-gradient(160deg, var(--void-2), var(--void-3));
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: var(--brass);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px var(--brass-glow);
+  }
+}
+
+.centerpiece {
+  border-color: var(--red-line);
+  background: linear-gradient(160deg, rgba(36, 4, 3, 0.85), rgba(8, 7, 6, 0.95));
+
+  &:hover {
+    border-color: var(--ember);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(255, 110, 74, 0.25);
+  }
+
+  .tierPrice .amount {
+    color: var(--ember);
+  }
+
+  .tierFeatures li::before {
+    background: var(--ember);
+  }
+}
+
+.tierKicker {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brass-dim);
+  margin: 0 0 0.35rem;
+}
+
+.tierName {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tierPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+
+  .amount {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--brass);
+  }
+
+  .unit {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+}
+
+.tierFeatures {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+  flex: 1;
+
+  li {
+    position: relative;
+    padding-left: 1.2rem;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.4;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.5em;
+      width: 6px;
+      height: 6px;
+      background: var(--olive);
+      border-radius: 1px;
+      transform: rotate(45deg);
+    }
+  }
+}
