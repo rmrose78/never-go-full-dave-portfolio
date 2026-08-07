@@ -194,10 +194,10 @@
   font-size: clamp(1.8rem, 7.5vw, 5.8rem);
   line-height: 1.02;
   font-weight: 700;
-  color: var(--text);
+  color: rgba(236, 233, 226, 0.78);
   display: inline-block;
   white-space: nowrap;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
   margin: 0;
 
   &.isBootingTitle {
@@ -206,10 +206,11 @@
 }
 
 .titleAccent {
-  color: var(--brass);
-  background: linear-gradient(135deg, var(--brass), var(--ember));
+  color: #fff2c4;
+  background: linear-gradient(135deg, #fff2c4 0%, #ffd54f 35%, #ff8a65 70%, #ff5722 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(255, 213, 79, 0.7)) drop-shadow(0 0 28px rgba(255, 87, 34, 0.5));
 }
 
 .heroWarning {
