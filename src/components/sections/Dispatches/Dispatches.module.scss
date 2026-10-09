@@ -1,0 +1,180 @@
+@use '@/styles/variables' as *;
+
+.dispatches {
+  position: relative;
+  background: $color-void-2;
+  padding: $section-py-mobile $section-px-mobile;
+
+  @media (min-width: $bp-md) {
+    padding: $section-py-desktop $section-px-desktop;
+  }
+}
+
+.graniteOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: radial-gradient($color-text 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.container {
+  max-width: $max-layout-width;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.sectionKicker {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $color-brass;
+  margin: 0 0 0.5rem;
+}
+
+.sectionTitle {
+  font-family: $font-display;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: $color-text;
+  margin: 0 0 2rem;
+}
+
+.postGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.postCard {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  border: 1px solid rgba(212, 178, 101, 0.2);
+  border-radius: 6px;
+  padding: 1.6rem;
+  background: $color-void-3;
+  color: $color-text;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-3px);
+    border-color: $color-brass;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+    outline: none;
+  }
+}
+
+.tag {
+  display: inline-block;
+  font-family: $font-display;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $color-void;
+  background: $color-brass;
+  padding: 0.2rem 0.55rem;
+  border-radius: 2px;
+  margin-bottom: 0.85rem;
+  font-weight: 700;
+}
+
+.postTitle {
+  font-family: $font-display;
+  font-size: 1.15rem;
+  line-height: 1.35;
+  color: $color-text;
+  margin: 0 0 0.5rem;
+}
+
+.readMore {
+  display: block;
+  margin-top: 1rem;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: $color-signal;
+}
+
+.archiveCta {
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+.archiveBtn {
+  background: $color-void-3;
+  border: 1px solid $color-brass;
+  color: $color-brass;
+  font-family: $font-display;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 0.85rem 1.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(212, 178, 101, 0.15);
+
+  &:hover,
+  &:focus-visible {
+    background: $color-brass;
+    color: $color-void;
+    box-shadow: 0 6px 25px $color-brass-glow;
+    transform: translateY(-2px);
+    outline: none;
+  }
+}
+
+.archiveListItem {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  padding: 1.1rem;
+  border: 1px solid rgba(212, 178, 101, 0.2);
+  border-radius: 6px;
+  margin-bottom: 0.85rem;
+  background: $color-void-3;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-brass;
+    transform: translateX(4px);
+    outline: none;
+  }
+}
+
+.archiveItemTitle {
+  font-family: $font-display;
+  font-size: 1.1rem;
+  color: $color-text;
+  margin: 0.3rem 0;
+}
+
+.archiveItemExcerpt {
+  font-family: $font-body;
+  color: $color-text-muted;
+  font-size: 0.85rem;
+  margin: 0;
+}
