@@ -22,8 +22,7 @@ export const Gallery: React.FC<GalleryProps> = ({
   })
 
   return (
-    <>
-      <section className={styles.gallery} id="gallery" aria-label="Painted Vault Miniature Portfolio">
+    <section className={styles.gallery} id="gallery" aria-label="Painted Vault Miniature Portfolio">
         <div className={styles.graniteOverlay} aria-hidden="true" />
         <div className={styles.container}>
           <p className={styles.sectionKicker}>Miniature Portfolio</p>
@@ -65,8 +64,6 @@ export const Gallery: React.FC<GalleryProps> = ({
           </div>
         </div>
       </section>
-      <div className={styles.chevronRule} aria-hidden="true" />
-    </>
   )
 }
 

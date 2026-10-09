@@ -45,12 +45,11 @@ export const CommissionForm: React.FC<CommissionFormProps> = ({
   })
 
   return (
-    <>
-      <section
-        className={styles.commission}
-        id="commission"
-        aria-label="Commission Quote Request Form"
-      >
+    <section
+      className={styles.commission}
+      id="commission"
+      aria-label="Commission Quote Request Form"
+    >
         <div className={styles.graniteOverlay} aria-hidden="true" />
         <div className={styles.container}>
           <p className={styles.sectionKicker}>Commission Request</p>
@@ -208,8 +207,6 @@ export const CommissionForm: React.FC<CommissionFormProps> = ({
           </div>
         </div>
       </section>
-      <div className={styles.chevronRule} aria-hidden="true" />
-    </>
   )
 }
 

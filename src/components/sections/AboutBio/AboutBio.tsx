@@ -22,12 +22,11 @@ export const AboutBio: React.FC<AboutBioProps> = ({
   ],
 }) => {
   return (
-    <>
-      <section
-        className={styles.aboutSection}
-        id="about"
-        aria-label="Artist Bio & Background"
-      >
+    <section
+      className={styles.aboutSection}
+      id="about"
+      aria-label="Artist Bio & Background"
+    >
         <div className={styles.graniteOverlay} aria-hidden="true" />
         <div className={styles.container}>
           <div className={styles.aboutGrid}>
@@ -62,8 +61,6 @@ export const AboutBio: React.FC<AboutBioProps> = ({
           </div>
         </div>
       </section>
-      <div className={styles.chevronRule} aria-hidden="true" />
-    </>
   )
 }
 

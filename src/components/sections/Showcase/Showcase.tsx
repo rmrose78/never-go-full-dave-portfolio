@@ -13,12 +13,11 @@ export const Showcase: React.FC<ShowcaseProps> = ({
   imageAlt = 'Centerpiece diorama photo study',
 }) => {
   return (
-    <>
-      <section
-        className={styles.showcase}
-        id="showcase"
-        aria-label="Environment & Diorama Showcase"
-      >
+    <section
+      className={styles.showcase}
+      id="showcase"
+      aria-label="Environment & Diorama Showcase"
+    >
         <div className={styles.graniteOverlay} aria-hidden="true" />
         <div className={styles.container}>
           <div className={styles.showcaseGrid}>
@@ -47,8 +46,6 @@ export const Showcase: React.FC<ShowcaseProps> = ({
           </div>
         </div>
       </section>
-      <div className={styles.chevronRule} aria-hidden="true" />
-    </>
   )
 }
 

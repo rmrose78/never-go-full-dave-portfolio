@@ -58,17 +58,23 @@ All skills in `.agents/skills/` are scoped for frontend development (Vite + Reac
 7. **Testability-First Architecture & Near 100% Coverage Target**:
    - Separate stateful logic, sound control envelopes, and quote calculation formulas out of `.tsx` files into pure custom hooks (`src/hooks/*.ts`) and pure utility functions (`src/utils/*.ts`).
    - TSX components MUST remain purely presentational with explicit callback props (`onClick`, `onToggle`, `onSubmit`) for clean dependency injection and effortless unit testing (`Vitest` + `React Testing Library` + `jest-axe`). Target near 100% test coverage across all `.ts` and `.tsx` modules.
+8. **Human Craft & Anti-AI-Trope Standard** (`docs/reference/ui-ux-design-rules.md`):
+   - **No glow slop**: Avoid wrapping every card/container in diffuse colored neon drop-shadows. Use true surface depth (luminosity steps) and crisp 1px hairline edges. Reserve focal glows strictly for primary active actions (1 per viewport max).
+   - **Varied cadence over repetitive templates**: Never stamp the identical kicker $\rightarrow$ title $\rightarrow$ lede $\rightarrow$ card grid $\rightarrow$ chevron rule loop across every section. Vary density, layout asymmetry, and boundary transitions.
+   - **Snappy tactile feedback**: Transitions should be 120ms–180ms ease-out. Every interactive card and button must have a distinct mechanical `:active` pressed state.
+   - **Authentic voice over LLM fluff**: Ban buzzword clichés ("elevate", "precision, patience & discipline", "seamless"). Write grounded, punchy studio voice fitting a Warhammer miniature painter.
 
 ---
 
 ## Current Priority
 
-Sanitization pass complete. Next priority: Write `docs/reference/design-direction.md` from `mockdrafts/mockdraft_dark.html` to unblock feature work on `src/components/{layout,sections,ui}/`.
+All 8 PRD sections and modals implemented and verified. Applying Human Craft UI/UX polish across components and styles.
 
 ---
 
 ## Docs & Reference Index
 
+- **UI/UX Human Craft Standard**: `docs/reference/ui-ux-design-rules.md`
 - **Design Direction**: `docs/reference/design-direction.md`
 - **Handoff Documentation**: `docs/handoff/2026-08-04-antigravity-workflow-handoff.md`
 - **Frontend Standards**: `.agents/skills/4-tdd/fe-standards.md`

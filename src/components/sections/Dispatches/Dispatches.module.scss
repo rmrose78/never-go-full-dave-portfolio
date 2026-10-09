@@ -68,14 +68,18 @@
   padding: 1.6rem;
   background: $color-void-3;
   color: $color-text;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.16s ease-out, border-color 0.16s ease-out, box-shadow 0.16s ease-out;
 
   &:hover,
   &:focus-visible {
     transform: translateY(-3px);
-    border-color: $color-brass;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+    border-color: rgba(212, 178, 101, 0.5);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.75);
     outline: none;
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.995);
   }
 }
 
@@ -130,16 +134,20 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  transition: all 0.25s ease;
+  transition: all 0.16s ease-out;
   box-shadow: 0 4px 15px rgba(212, 178, 101, 0.15);
 
   &:hover,
   &:focus-visible {
     background: $color-brass;
     color: $color-void;
-    box-shadow: 0 6px 25px $color-brass-glow;
+    box-shadow: 0 4px 18px $color-brass-glow;
     transform: translateY(-2px);
     outline: none;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
   }
 }
 
