@@ -1,0 +1,227 @@
+@use '@/styles/variables' as *;
+
+.commission {
+  position: relative;
+  background: radial-gradient(ellipse 70% 60% at 80% 40%, rgba(255, 110, 74, 0.08), transparent 60%), $color-void-2;
+  padding: $section-py-mobile $section-px-mobile;
+
+  @media (min-width: $bp-md) {
+    padding: $section-py-desktop $section-px-desktop;
+  }
+}
+
+.graniteOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: radial-gradient($color-text 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.container {
+  max-width: $max-layout-width;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.sectionKicker {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $color-brass;
+  margin: 0 0 0.5rem;
+}
+
+.sectionTitle {
+  font-family: $font-display;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: $color-text;
+  margin: 0 0 1rem;
+}
+
+.sectionLede {
+  font-family: $font-body;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: $color-text-muted;
+  max-width: 48rem;
+  margin: 0 0 2.5rem;
+}
+
+.intakeWizardCard {
+  background: $color-void-card;
+  border: 1px solid rgba(212, 178, 101, 0.3);
+  border-radius: 8px;
+  padding: 1.75rem;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 178, 101, 0.15);
+
+  @media (min-width: $bp-md) {
+    padding: 2.5rem;
+  }
+}
+
+.wizardGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.formLabel {
+  display: block;
+  font-family: $font-display;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-brass;
+  margin-bottom: 0.5rem;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  width: 100%;
+  background: $color-void-3;
+  border: 1px solid rgba(212, 178, 101, 0.3);
+  color: $color-text;
+  padding: 0.8rem 0.95rem;
+  border-radius: 4px;
+  font-family: $font-body;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus-visible {
+    outline: none;
+    border-color: $color-brass;
+    box-shadow: 0 0 10px $color-brass-glow;
+  }
+
+  &::placeholder {
+    color: rgba(164, 159, 148, 0.6);
+  }
+}
+
+.formSelect {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d4b265' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.95rem center;
+  padding-right: 2.5rem;
+}
+
+.fullWidthGroup {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.actionsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+
+  @media (min-width: $bp-sm) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.mailtoBtn {
+  flex: 1.5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 1.05rem 2rem;
+  border: 1px solid $color-ember;
+  color: $color-ember;
+  background: rgba(36, 4, 3, 0.5);
+  text-decoration: none;
+  font-family: $font-display;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 4px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(255, 110, 74, 0.2);
+
+  &:hover,
+  &:focus-visible {
+    background: $color-ember;
+    color: $color-void;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px $color-ember-glow;
+    outline: none;
+  }
+}
+
+.copyBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.05rem 1.5rem;
+  border: 1px solid rgba(212, 178, 101, 0.4);
+  color: $color-brass;
+  background: $color-void-3;
+  font-family: $font-display;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-brass;
+    color: $color-text;
+    background: rgba(212, 178, 101, 0.1);
+    outline: none;
+  }
+
+  &.isCopied {
+    border-color: $color-signal;
+    color: $color-signal;
+    background: rgba(110, 229, 204, 0.1);
+  }
+}
+
+.chevronRule {
+  position: relative;
+  height: 24px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(212, 178, 101, 0.12) 0,
+    rgba(212, 178, 101, 0.12) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  border-top: 1px solid rgba(212, 178, 101, 0.2);
+  border-bottom: 1px solid rgba(212, 178, 101, 0.2);
+}
